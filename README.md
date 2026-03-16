@@ -10,13 +10,38 @@ Evo-anything 是一个基于 git 的演化算法设计引擎。它通过 LLM 驱
 - Git
 - GitHub CLI (`gh`) — 用于 `/hunt` 搜索仓库
 
-### 通用步骤：安装 evo-engine
+### 方式一：npm 一键安装（推荐）
+
+```bash
+npm install -g evo-anything
+```
+
+安装过程中会自动调用 `pip install` 完成 Python MCP server 的安装。
+
+安装完成后，运行 setup 配置你的 AI IDE：
+
+```bash
+# 配置所有支持的平台（Claude Code、Cursor、Windsurf、OpenClaw）
+npx evo-anything setup
+
+# 或只配置指定平台
+npx evo-anything setup --platform claude
+npx evo-anything setup --platform cursor
+npx evo-anything setup --platform windsurf
+npx evo-anything setup --platform openclaw
+```
+
+---
+
+### 方式二：手动安装
+
+#### 通用步骤：安装 evo-engine
 
 无论使用哪个平台，都需要先安装 MCP server：
 
 ```bash
-git clone https://github.com/DataLab-atom/Evo-anythin.git
-cd Evo-anythin/plugin/evo-engine
+git clone https://github.com/DataLab-atom/Evo-anything.git
+cd Evo-anything/plugin/evo-engine
 pip install .
 ```
 
