@@ -2,6 +2,67 @@
 
 U2E (Utility-to-Evolution) 是一个基于 git 的演化算法设计引擎。它通过 LLM 驱动的变异、交叉和反思，在任意 git 仓库上自动演化代码，追求更优的 benchmark 表现。
 
+## 安装
+
+### 前置条件
+
+- Python >= 3.11
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
+- Git
+- GitHub CLI (`gh`) — 用于 `/hunt` 搜索仓库
+
+### 1. 克隆插件仓库
+
+```bash
+git clone https://github.com/DataLab-atom/u2e-plugin.git
+cd u2e-plugin
+```
+
+### 2. 安装 evo-engine（MCP Server）
+
+```bash
+cd plugin/evo-engine
+pip install .
+```
+
+这会安装 `mcp`、`pydantic` 等依赖，并注册 `evo-engine` 命令。
+
+### 3. 在 Claude Code 中注册插件
+
+在你的项目根目录（或全局）的 `.claude/settings.json` 中添加 MCP server 配置：
+
+```json
+{
+  "mcpServers": {
+    "evo-engine": {
+      "command": "evo-engine",
+      "type": "stdio"
+    }
+  }
+}
+```
+
+### 4. 注册 Skills
+
+将 `plugin/skills/` 下的技能目录复制（或软链接）到你的 Claude Code skills 目录：
+
+```bash
+# 软链接方式（推荐，便于更新）
+ln -s $(pwd)/plugin/skills/* ~/.claude/skills/
+```
+
+### 5. 验证安装
+
+启动 Claude Code，输入 `/status`，如果看到提示 "Evolution not initialized" 说明 MCP server 已连通，插件安装成功。
+
+### 可选配置
+
+演化状态默认存储在 `~/.openclaw/u2e-state/`，可通过环境变量自定义：
+
+```bash
+export U2E_STATE_DIR=/path/to/your/state
+```
+
 ## Quick Start
 
 ```
