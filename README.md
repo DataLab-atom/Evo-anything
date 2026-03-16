@@ -6,61 +6,104 @@ U2E (Utility-to-Evolution) 是一个基于 git 的演化算法设计引擎。它
 
 ### 前置条件
 
+- [OpenClaw](https://github.com/openclaw/openclaw) 已安装并运行
 - Python >= 3.11
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Git
 - GitHub CLI (`gh`) — 用于 `/hunt` 搜索仓库
 
-### 1. 克隆插件仓库
+### 方式一：通过 OpenClaw CLI 安装（推荐）
 
 ```bash
+# 从 npm 安装
+openclaw plugins install openclaw-u2e
+
+# 重启 gateway 使插件生效
+openclaw gateway restart
+
+# 验证
+openclaw plugins list
+```
+
+### 方式二：本地开发模式安装
+
+```bash
+# 克隆仓库
 git clone https://github.com/DataLab-atom/u2e-plugin.git
 cd u2e-plugin
+
+# 安装 evo-engine 依赖
+cd plugin/evo-engine && pip install . && cd ../..
+
+# 以本地链接模式安装到 OpenClaw
+openclaw plugins install -l ./plugin
+
+# 重启 gateway
+openclaw gateway restart
 ```
 
-### 2. 安装 evo-engine（MCP Server）
+### 方式三：手动安装
+
+1. 将 `plugin/` 目录复制到 OpenClaw 扩展目录：
 
 ```bash
-cd plugin/evo-engine
-pip install .
+cp -r plugin/ ~/.openclaw/extensions/openclaw-u2e/
 ```
 
-这会安装 `mcp`、`pydantic` 等依赖，并注册 `evo-engine` 命令。
-
-### 3. 在 Claude Code 中注册插件
-
-在你的项目根目录（或全局）的 `.claude/settings.json` 中添加 MCP server 配置：
+2. 在 `~/.openclaw/openclaw.json` 中注册插件和 MCP server：
 
 ```json
 {
+  "plugins": {
+    "entries": {
+      "openclaw-u2e": {
+        "enabled": true,
+        "config": {}
+      }
+    }
+  },
   "mcpServers": {
     "evo-engine": {
       "command": "evo-engine",
-      "type": "stdio"
+      "args": [],
+      "env": {}
     }
   }
 }
 ```
 
-### 4. 注册 Skills
-
-将 `plugin/skills/` 下的技能目录复制（或软链接）到你的 Claude Code skills 目录：
+3. 重启 gateway：
 
 ```bash
-# 软链接方式（推荐，便于更新）
-ln -s $(pwd)/plugin/skills/* ~/.claude/skills/
+openclaw gateway restart
 ```
 
-### 5. 验证安装
+### 验证安装
 
-启动 Claude Code，输入 `/status`，如果看到提示 "Evolution not initialized" 说明 MCP server 已连通，插件安装成功。
+```bash
+# 检查插件状态
+openclaw plugins doctor
+
+# 或启动对话，输入 /status
+# 看到 "Evolution not initialized" 说明 MCP server 已连通，安装成功
+```
 
 ### 可选配置
 
-演化状态默认存储在 `~/.openclaw/u2e-state/`，可通过环境变量自定义：
+演化状态默认存储在 `~/.openclaw/u2e-state/`，可通过环境变量或 `openclaw.json` 自定义：
 
-```bash
-export U2E_STATE_DIR=/path/to/your/state
+```json
+{
+  "plugins": {
+    "entries": {
+      "openclaw-u2e": {
+        "enabled": true,
+        "config": {
+          "statePath": "/path/to/your/state"
+        }
+      }
+    }
+  }
+}
 ```
 
 ## Quick Start
