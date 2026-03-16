@@ -10,11 +10,36 @@ Evo-anything is a git-based evolutionary algorithm design engine. Driven by LLM-
 - Git
 - GitHub CLI (`gh`) — required for `/hunt` to search repositories
 
-### Step 1: Install evo-engine (required for all platforms)
+### Option 1: npm (recommended)
 
 ```bash
-git clone https://github.com/DataLab-atom/Evo-anythin.git
-cd Evo-anythin/plugin/evo-engine
+npm install -g evo-anything
+```
+
+This automatically installs the Python MCP server via `pip` during the npm postinstall step.
+
+After installation, configure your AI IDE:
+
+```bash
+# Configure all supported platforms (Claude Code, Cursor, Windsurf, OpenClaw)
+npx evo-anything setup
+
+# Or configure a specific platform
+npx evo-anything setup --platform claude
+npx evo-anything setup --platform cursor
+npx evo-anything setup --platform windsurf
+npx evo-anything setup --platform openclaw
+```
+
+---
+
+### Option 2: Manual
+
+#### Step 1: Install evo-engine (required for all platforms)
+
+```bash
+git clone https://github.com/DataLab-atom/Evo-anything.git
+cd Evo-anything/plugin/evo-engine
 pip install .
 ```
 
