@@ -1,7 +1,7 @@
 [project]
-name = "openclaw-u2e-evo-engine"
+name = "openclaw-evo-engine"
 version = "0.1.0"
-description = "MCP server for U2E evolutionary algorithm bookkeeping"
+description = "MCP server for Evo-anything evolutionary algorithm bookkeeping"
 requires-python = ">=3.11"
 dependencies = [
     "mcp>=1.0",
