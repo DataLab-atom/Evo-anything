@@ -17,7 +17,39 @@ You drive the evolution loop. You do not generate code or run benchmarks — you
 
 - **Stop condition**: `action == "done"` or user signals to stop
 - **Worker failure**: if a worker crashes, record `fitness_ready(success=False, fitness_values=[])` on its behalf
+- **needs_remap signal**: if any worker reports `raw_output="target_not_found: needs_remap"`,
+  collect the affected `target_id`s and handle them after `evo_step("select")` (see below)
 - **Progress report**: after each generation, report to the user AND update the canvas dashboard
+
+## After `evo_step("select")` — Target Revalidation
+
+After selection, check whether any structural ops ran this generation:
+
+```python
+structural_ran = any(
+    ind.operation == "structural" and ind.success
+    for ind in this_gen_individuals
+)
+needs_remap_targets = [
+    ind.target_id for ind in this_gen_individuals
+    if "needs_remap" in (ind.raw_output or "")
+]
+```
+
+**If `structural_ran` OR `needs_remap_targets` is non-empty:**
+
+1. Call `evo_revalidate_targets()` to check all targets against the current repo.
+2. For each `target_id` in `result.missing`:
+   - Call `evo_freeze_target(target_id)` with reason `"invalidated_by_structural_op"`
+   - Spawn a lightweight **MapAgent** re-scan limited to the files changed by the structural op
+   - When MapAgent returns new targets, call `evo_register_targets([...])` with
+     `derived_from=[target_id]` for each new target that replaces the missing one
+3. Log the remap event to `memory/targets/{target_id}/long_term.md`:
+   ```
+   # Structural remap at gen {N}
+   Replaced by: {new_target_ids}
+   Operator: {structural_op}
+   ```
 
 ## After Each Generation — Canvas Dashboard
 
@@ -95,5 +127,8 @@ Gen {N} | Evals {used}/{max} | Pareto front: {K} solutions
 
 - `evo_step` — advance the state machine
 - `evo_get_status` — check current evolution progress
+- `evo_revalidate_targets` — verify all targets still exist after structural ops
+- `evo_freeze_target` — freeze a target that was invalidated
+- `evo_register_targets` — register replacement targets with `derived_from`
 - `exec git` — branch management (delete, tag)
 - `write` + `canvas` — **live fitness dashboard** (built-in, always available)

@@ -12,7 +12,10 @@ A single `item` from the batch:
   "target_id": "loss-fn",
   "parent_branches": ["seed-baseline"],
   "target_file": "model.py",
-  "target_function": "compute_loss"
+  "target_function": "compute_loss",
+  "target_description": "computes training loss, called by train_step",
+  "target_hint": "class Trainer, mid-file",
+  "structural_op": ""
 }
 ```
 
@@ -31,7 +34,39 @@ Keep these in scope — you need them in step 3.
 
 ## Flow
 
-### 1. CodeGen — generate the variant
+### 1. Locate the target function
+
+Before generating any code, find the current location of the target.
+Use the following three-step degrading search:
+
+**Step 1 — grep by function name (primary)**
+```bash
+grep -n "def {item.target_function}" {repo}/{item.target_file}
+```
+If found: proceed with the located line.
+
+**Step 2 — semantic search across repo (fallback if step 1 fails)**
+```
+oracle -p "Find the function described as: {item.target_description}
+           Hint: {item.target_hint}
+           It was previously in {item.target_file} but may have moved.
+           Return: current file path and function name."
+```
+If found: use the new file/function for this task.
+
+**Step 3 — mark needs_remap and exit**
+If neither step finds the function:
+```
+evo_step("fitness_ready", branch=item.branch, fitness_values=[], success=False,
+         operation=item.operation, target_id=item.target_id,
+         parent_branches=item.parent_branches,
+         raw_output="target_not_found: needs_remap")
+```
+Exit early.
+
+---
+
+### 2. CodeGen — generate the variant
 
 ```
 git checkout -b {item.branch} {item.parent_branches[0]}
@@ -39,12 +74,41 @@ parent_commit = git rev-parse {item.parent_branches[0]}
 ```
 
 Read context:
-- Read the target function code from `item.target_file`
+- Read the located target function code
+- Read `memory/global/long_term.md` for global directions and domain knowledge
 - Read `memory/targets/{item.target_id}/long_term.md` for accumulated wisdom
 - Read `memory/targets/{item.target_id}/failures.md` to avoid known bad paths
 - If `operation == "crossover"`: also read code from `parent_branches[1]`
 
-**Choose generation method based on operation complexity:**
+**Choose generation method based on operation type:**
+
+#### `structural`
+
+Always use `claude` CLI (multi-file changes require full repo context):
+```
+cd <repo>
+claude --permission-mode bypassPermissions --print \
+  "Apply the structural operator '{item.structural_op}' to the codebase.
+   Primary target: `{item.target_function}` in `{item.target_file}`.
+   Hint: {item.target_hint}
+   Operator definitions:
+     insert     — insert a new intermediate layer/function in the call chain
+     split      — split this function into two focused sub-functions
+     merge      — merge this function with a closely related neighbour
+     decouple   — separate tightly coupled logic into independent functions
+     extract    — extract a reusable sub-routine from the function body
+     parallelize — restructure for concurrent execution
+     pipeline   — reorganize into a producer→consumer pipeline
+     stratify   — introduce layered abstraction
+     cache      — add memoization or result caching
+   Constraints:
+   - Only modify files identified as optimization targets (not benchmarks/tests)
+   - Preserve all public API signatures called by the benchmark
+   - Apply lessons: {long_term.md summary}
+   - Avoid: {failures.md summary}"
+```
+
+After coding-agent completes, verify no benchmark/test/eval files were changed.
 
 #### Simple mutate (default)
 
@@ -54,8 +118,7 @@ For localized changes (loss function tweak, hyperparameter, single algorithm swa
 
 #### Complex mutate or crossover (use `coding-agent` when available)
 
-For structural changes, crossover between significantly different branches,
-or when the target function has complex dependencies:
+For crossover between significantly different branches or complex dependencies:
 
 **If `claude` CLI is available** (preferred):
 ```
@@ -78,7 +141,7 @@ bash pty:true workdir:<repo> command:"codex exec --full-auto '{instruction}'"
 
 After coding-agent completes, verify only `item.target_file` was changed and signature is intact.
 
-### 1b. Static validation — before committing
+### 2b. Static validation — before committing
 
 **Always run this after generating the variant, regardless of method:**
 
@@ -106,7 +169,7 @@ git add {item.target_file}
 git commit -m "gen-{N}/{target_id}/{operation}: {one-line description of change}"
 ```
 
-### 2. Policy Check — request review
+### 3. Policy Check — request review
 
 ```
 step = evo_step("code_ready",
@@ -129,7 +192,7 @@ Hand the `step` to **PolicyAgent** for review.
   ```
   Exit early.
 
-### 3. Benchmark — evaluate the variant
+### 4. Benchmark — evaluate the variant
 
 ```
 git worktree add /tmp/eval-{branch} {step.branch}
@@ -209,7 +272,7 @@ If the variant crashes (after static check passed):
 - Trivial runtime fix (wrong tensor dtype, device mismatch): fix, re-commit, retry `evo_step("code_ready")`
 - Logic error: report `success=False` with `fitness_values=[]`
 
-### 4. Report
+### 5. Report
 
 ```
 evo_step("fitness_ready",

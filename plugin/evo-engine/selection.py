@@ -299,6 +299,7 @@ def plan_generation(
     targets: dict,
     pop_size: int,
     mutation_rate: float,
+    structural_rate: float,
     budget_remaining: int,
     synergy_interval: int,
     generation: int,
@@ -307,6 +308,9 @@ def plan_generation(
 
     Uses temperature-based explore/exploit budget distribution.
     Returns list of {target_id, operation, count, priority}.
+
+    Structural ops get a base slice of each target's budget (structural_rate).
+    When stagnation_count >= 3 the structural rate is doubled (capped at 0.5).
     """
     plan = []
     active_targets = {k: v for k, v in targets.items() if v.status.value == "active"}
@@ -322,8 +326,23 @@ def plan_generation(
         weight = target.temperature / total_temp
         n_variants = max(1, round(pop_size * weight))
 
-        n_mutate = max(1, round(n_variants * mutation_rate))
-        n_crossover = max(0, n_variants - n_mutate)
+        # Structural slots — boosted on stagnation.
+        effective_structural_rate = structural_rate
+        if target.stagnation_count >= 3:
+            effective_structural_rate = min(0.5, structural_rate * 2)
+        n_structural = round(n_variants * effective_structural_rate)
+        n_remaining = max(1, n_variants - n_structural)
+
+        if n_structural > 0:
+            plan.append({
+                "target_id": target_id,
+                "operation": Operation.STRUCTURAL,
+                "count": n_structural,
+                "priority": "high" if target.stagnation_count >= 3 else "medium",
+            })
+
+        n_mutate = max(1, round(n_remaining * mutation_rate))
+        n_crossover = max(0, n_remaining - n_mutate)
 
         if n_crossover > 0:
             plan.append({
