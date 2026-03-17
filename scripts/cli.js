@@ -57,18 +57,17 @@ function setupClaude() {
   writeJSON(settingsPath, settings);
   console.log(`  ✅ Updated ${settingsPath}`);
 
-  // 链接 skills
+  // 复制 skills（Claude Code 不跟随符号链接）
   const claudeSkills = path.join(os.homedir(), '.claude', 'skills');
   fs.mkdirSync(claudeSkills, { recursive: true });
   for (const skill of fs.readdirSync(SKILLS_DIR)) {
     const src = path.join(SKILLS_DIR, skill);
     const dst = path.join(claudeSkills, skill);
-    if (!fs.existsSync(dst)) {
-      fs.symlinkSync(src, dst);
-      console.log(`  🔗 Linked skill: ${skill}`);
-    } else {
-      console.log(`  ⚡ Skill already exists: ${skill}`);
+    fs.mkdirSync(dst, { recursive: true });
+    for (const file of fs.readdirSync(src)) {
+      fs.copyFileSync(path.join(src, file), path.join(dst, file));
     }
+    console.log(`  ✅ Installed skill: ${skill}`);
   }
 }
 
