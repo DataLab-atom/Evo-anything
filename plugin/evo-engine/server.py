@@ -411,6 +411,17 @@ def evo_report_fitness(
     """
     state = _get_state()
 
+    n_obj = len(state.config.objectives)
+    if success and len(fitness_values) != n_obj:
+        return {
+            "error": (
+                f"fitness_values has {len(fitness_values)} element(s) but "
+                f"{n_obj} objective(s) are configured "
+                f"({[o.name for o in state.config.objectives]}). "
+                "Pass one value per objective in config order."
+            )
+        }
+
     if code_hash and code_hash in state.fitness_cache:
         cached = state.fitness_cache[code_hash]
         return {"cached": True, "fitness_values": cached, "branch": branch}
@@ -888,6 +899,18 @@ def evo_step(
     # ------------------------------------------------------------------ fitness_ready
     if phase == _PHASE_FITNESS:
         fv = fitness_values or []
+
+        # Validate length when the evaluation succeeded.
+        n_obj = len(state.config.objectives)
+        if success and len(fv) != n_obj:
+            return {
+                "error": (
+                    f"fitness_values has {len(fv)} element(s) but "
+                    f"{n_obj} objective(s) are configured "
+                    f"({[o.name for o in state.config.objectives]}). "
+                    "Pass one value per objective in config order."
+                )
+            }
 
         if code_hash and code_hash in state.fitness_cache:
             cached = state.fitness_cache[code_hash]
