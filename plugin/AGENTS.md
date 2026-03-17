@@ -42,7 +42,7 @@ LOOP:
       # server runs policy check here — returns "run_benchmark" or next "generate_code"/"select"
 
   elif step.action == "run_benchmark":
-      # policy check passed for step.branch
+      # policy check passed — step contains branch, target_id, operation, parent_branches
       a. git worktree add <path> step.branch
       b. Run benchmark command in worktree
       c. Parse fitness from output
@@ -50,8 +50,9 @@ LOOP:
       step = evo_step("fitness_ready",
                       branch=step.branch,
                       fitness=<value>, success=<bool>,
-                      operation=<op>, target_id=<tid>,
-                      parent_branches=[...])
+                      operation=step.operation,
+                      target_id=step.target_id,
+                      parent_branches=step.parent_branches)
       # server returns next "generate_code" or "select"
 
   elif step.action == "select":
