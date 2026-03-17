@@ -717,10 +717,26 @@ def evo_step(phase: str, branch: str = "", parent_commit: str = "",
             next_step["policy_violation"] = {"branch": branch, "reason": reason}
             return next_step
 
-        return {"action": "run_benchmark", "branch": branch}
+        return {
+            "action": "run_benchmark",
+            "branch": branch,
+            "target_id": item.target_id if item else "",
+            "operation": item.operation.value if item else "",
+            "parent_branches": item.parent_branches if item else [],
+        }
 
     # ------------------------------------------------------------------ fitness_ready
     if phase == _PHASE_FITNESS:
+        # Cache check: skip recording if this code was already evaluated
+        if code_hash and code_hash in state.fitness_cache:
+            cached = state.fitness_cache[code_hash]
+            state.batch_cursor += 1
+            _save()
+            next_step = _next_item_or_select(state)
+            next_step["cached"] = True
+            next_step["cached_fitness"] = cached
+            return next_step
+
         is_min = state.config.objective == Objective.MIN
         ind = Individual(
             branch=branch,

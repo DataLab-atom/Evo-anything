@@ -34,7 +34,8 @@ User provides: repo path, benchmark command, objective (min/max), and optionally
    - Each call returns `{action, ...data}`; execute the action, then call `evo_step` again
    - **Policy check is automatic**: calling `evo_step("code_ready", branch=..., parent_commit=...)`
      triggers a server-side git diff; the server returns `action="run_benchmark"` (pass)
-     or `action="skip"` (violation, already recorded — no benchmark needed)
+     or the next `generate_code`/`select` action with `policy_violation` set (violation,
+     already recorded — no benchmark needed)
    - Stop when `action == "done"` or when you judge the results are sufficient
 
 6. Report progress to user after each generation.
