@@ -30,7 +30,8 @@ User provides: repo path, benchmark command, objective (min/max), and optionally
    - For each target: `exec mkdir -p <repo>/memory/targets/<id>/short_term`
 
 5. Enter evolution loop — follow the protocol in AGENTS.md:
-   - Call `evo_next_batch` → execute each operation → `evo_report_fitness` → `evo_select_survivors` → reflect → repeat
+   - Call `evo_next_batch` → execute each operation → **PolicyAgent review** → `evo_report_fitness` → `evo_select_survivors` → reflect → repeat
+   - PolicyAgent runs BEFORE any benchmark execution. If a branch is rejected, skip it entirely (no benchmark, no worktree). See AGENTS.md § PolicyAgent for the full procedure.
 
 6. Report progress to user after each generation.
 

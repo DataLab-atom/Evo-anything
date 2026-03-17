@@ -71,14 +71,56 @@ Tags: `seed-baseline`, `best-gen-{N}`, `best-overall`
 
 ## Evaluation Protocol
 
-1. **Static check** — read generated code, fix obvious issues (missing imports, syntax errors). Do NOT fix algorithm logic.
-2. **Quick eval** — if quick_cmd is configured, run it first to filter obvious failures.
-3. **Full eval** — run full benchmark only on candidates that pass quick eval.
+1. **Policy check** — run PolicyAgent BEFORE any evaluation (see below). Reject violating branches immediately.
+2. **Static check** — read generated code, fix obvious issues (missing imports, syntax errors). Do NOT fix algorithm logic.
+3. **Quick eval** — if quick_cmd is configured, run it first to filter obvious failures.
+4. **Full eval** — run full benchmark only on candidates that pass quick eval.
 
 If a variant crashes:
 - Read the traceback
 - If it's a trivial fix (missing import, typo, type mismatch): fix it, re-commit, re-evaluate
 - If it's an algorithm logic error: mark as failed, record in failures.md
+
+## PolicyAgent
+
+**Role**: Gate-keeper that audits every candidate branch before evaluation. Runs as the first step in the evaluation pipeline.
+
+**Trigger**: Called for each branch produced by CodeGenAgent, before static check and before any benchmark execution.
+
+**Procedure**:
+
+```
+1. Obtain the diff:
+     exec git -C <repo> diff <parent_commit>..<branch_tip> -- <files>
+   Or for the full tree:
+     exec git -C <repo> diff <parent_commit>..<branch_tip> --name-only
+
+2. Collect protected file patterns from evo_init config:
+   - benchmark_cmd source file(s) (e.g. benchmark.py, eval.py, run_eval.sh)
+   - Any file listed under "eval_scripts" in the evolution config
+   - Default patterns if not configured:
+       benchmark*.py  eval*.py  evaluate*.py  run_eval*  test_bench*
+
+3. For each changed file in the diff:
+   a. If it matches a protected pattern → VIOLATION
+   b. If it is outside the declared optimization targets → VIOLATION
+   c. If its function signature (def line or class interface) changed → VIOLATION
+
+4. On VIOLATION:
+   - Do NOT run the benchmark
+   - Call evo_report_fitness with fitness=null and status="policy_violation"
+   - Append to memory/targets/{id}/failures.md:
+       ## Gen {N} — Policy Violation
+       Branch: <branch>
+       Reason: <which file / which rule was broken>
+   - Log to console: "PolicyAgent: REJECTED <branch> — <reason>"
+
+5. On PASS:
+   - Log: "PolicyAgent: APPROVED <branch>"
+   - Proceed to Static check → Quick eval → Full eval
+```
+
+**PolicyAgent never fixes violations** — it only approves or rejects. It does not attempt to revert changes or patch the branch.
 
 ## Constraints
 
