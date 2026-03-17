@@ -38,6 +38,7 @@ class Operation(str, Enum):
     MUTATE = "mutate"
     CROSSOVER = "crossover"
     SYNERGY = "synergy"
+    STRUCTURAL = "structural"
 
 
 class TargetStatus(str, Enum):
@@ -50,9 +51,10 @@ class Target(BaseModel):
     id: str
     file: str
     function: str
-    lines: str = ""
+    description: str = ""   # semantic description for fallback search
+    hint: str = ""          # rough location hint, e.g. "class Trainer, mid-file"
+    derived_from: list[str] = Field(default_factory=list)  # parent target ids after structural op
     impact: str = "medium"
-    description: str = ""
     status: TargetStatus = TargetStatus.ACTIVE
     temperature: float = 1.0  # explore/exploit control
     # Representative fitness from the local Pareto front (first obj or primary obj).
@@ -89,6 +91,9 @@ class BatchItem(BaseModel):
     parent_branches: list[str]
     target_file: str
     target_function: str
+    target_description: str = ""  # semantic description for fallback location
+    target_hint: str = ""         # rough location hint
+    structural_op: str = ""       # specific structural operator (insert/split/etc.)
 
 
 class SurvivorResult(BaseModel):
@@ -112,6 +117,8 @@ class EvolutionConfig(BaseModel):
     max_fe: int = 500
     pop_size: int = 8
     mutation_rate: float = 0.5
+    structural_rate: float = 0.2  # fraction of each target's budget for structural ops
+    directions: list[str] = Field(default_factory=list)  # domain knowledge hints pre-loaded into memory
     synergy_interval: int = 3
     top_k_survive: int = 5
     # Glob patterns for files that must never be modified by evolution.

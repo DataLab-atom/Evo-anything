@@ -54,10 +54,12 @@ WorkerAgent receives: item = {branch, operation, target_id, parent_branches,
 1. CODEGEN — generate the variant
    a. git checkout -b item.branch from item.parent_branches[0]
    b. parent_commit = git rev-parse item.parent_branches[0]
-   c. Read target function code
-   d. Read memory/ for this target (long_term + failures)
-   e. Generate variant (mutate or crossover)
-   f. git add + git commit
+   c. Read target function code; compute code_hash = sha256 of file content
+   d. Check cache: result = evo_check_cache(code_hash=code_hash)
+      If result.cached == True: skip codegen, skip benchmark, report via evo_step("fitness_ready") using cached values
+   e. Read memory/ for this target (long_term + failures)
+   f. Generate variant (mutate or crossover)
+   g. git add + git commit
 
 2. REQUEST POLICY CHECK
    step = evo_step("code_ready",
@@ -90,12 +92,12 @@ WorkerAgent receives: item = {branch, operation, target_id, parent_branches,
 
    step = evo_step("fitness_ready",
                     branch=step.branch,
-                    fitness=<value>,
+                    fitness_values=<list[float]>,
                     success=<bool>,
                     operation=step.operation,
                     target_id=step.target_id,
                     parent_branches=step.parent_branches)
-   # → {action: "worker_done", branch, fitness, success, is_new_best, total_evals}
+   # → {action: "worker_done", branch, fitness_values, success, on_pareto_front, total_evals}
    return  ← worker exits
 ```
 
@@ -114,6 +116,24 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
    - Record results via evo_record_synergy
 ```
 
+## Standalone Tools (not evo_step phases)
+
+| Tool | Called by | Purpose |
+|------|-----------|---------|
+| `evo_init` | OrchestratorAgent (once) | Initialize run, set config, preload memory |
+| `evo_register_targets` | MapAgent (once) | Register optimization targets |
+| `evo_report_seed` | OrchestratorAgent (once) | Record seed baseline fitness |
+| `evo_next_batch` | OrchestratorAgent | Request next generation batch (alternative to evo_step) |
+| `evo_report_fitness` | WorkerAgent | Report individual fitness (alternative to evo_step("fitness_ready")) |
+| `evo_select_survivors` | OrchestratorAgent | Run selection (alternative to evo_step("select")) |
+| `evo_revalidate_targets` | OrchestratorAgent | Verify registered targets still exist in repo (file present, function defined); used after structural-op derivatives |
+| `evo_check_cache` | WorkerAgent (before codegen) | Check if this (op, code_hash) was already evaluated |
+| `evo_get_status` | Any agent | Query current run progress and best results |
+| `evo_get_lineage` | Any agent | Get git ancestry of a branch |
+| `evo_freeze_target` | OrchestratorAgent | Stop expanding a target |
+| `evo_boost_target` | OrchestratorAgent | Increase a target's selection budget |
+| `evo_record_synergy` | ReflectAgent | Record synergy cross-target results |
+
 ## State Machine — Phase Reference
 
 ### `evo_step("begin_generation")`
@@ -126,6 +146,8 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
   "action": "dispatch_workers",
   "generation": 0,
   "batch_size": 8,
+  "objectives": [{"name": "score", "direction": "min"}],
+  "benchmark_format": "numbers",
   "items": [
     {"branch": "gen-0/loss-fn/mutate-0", "operation": "mutate",
      "target_id": "loss-fn", "parent_branches": ["seed-baseline"],
@@ -164,6 +186,10 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
 {
   "action": "run_benchmark",
   "branch": "gen-0/loss-fn/mutate-0",
+  "benchmark_cmd": "python benchmark.py",
+  "quick_cmd": null,
+  "benchmark_format": "numbers",
+  "objectives": [{"name": "score", "direction": "min"}],
   "target_id": "loss-fn",
   "operation": "mutate",
   "parent_branches": ["seed-baseline"]
@@ -184,18 +210,18 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
 }
 ```
 
-### `evo_step("fitness_ready", branch=..., fitness=..., success=..., operation=..., target_id=..., parent_branches=[...])`
+### `evo_step("fitness_ready", branch=..., fitness_values=[...], success=..., operation=..., target_id=..., parent_branches=[...])`
 
-**Input:** `branch`, `fitness`, `success`, `operation`, `target_id`, `parent_branches` (all required)
+**Input:** `branch`, `fitness_values` (list[float], one per objective), `success`, `operation`, `target_id`, `parent_branches` (all required)
 
 **Output:**
 ```json
 {
   "action": "worker_done",
   "branch": "gen-0/loss-fn/mutate-0",
-  "fitness": 0.0342,
+  "fitness_values": [0.0342],
   "success": true,
-  "is_new_best": true,
+  "on_pareto_front": true,
   "total_evals": 15
 }
 ```
@@ -220,7 +246,16 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
 
 **Input:** _(no extra args)_
 
-**Output:** Same as `begin_generation` (`dispatch_workers` or `done`).
+**Output:** Same as `begin_generation` (`dispatch_workers`) or:
+```json
+{
+  "action": "done",
+  "reason": "budget exhausted",
+  "total_evals": 500,
+  "best_obj": [0.0342],
+  "pareto_front_size": 3
+}
+```
 
 ## Memory Layout
 
