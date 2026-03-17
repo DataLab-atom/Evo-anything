@@ -90,12 +90,12 @@ WorkerAgent receives: item = {branch, operation, target_id, parent_branches,
 
    step = evo_step("fitness_ready",
                     branch=step.branch,
-                    fitness=<value>,
+                    fitness_values=<list[float]>,
                     success=<bool>,
                     operation=step.operation,
                     target_id=step.target_id,
                     parent_branches=step.parent_branches)
-   # → {action: "worker_done", branch, fitness, success, is_new_best, total_evals}
+   # → {action: "worker_done", branch, fitness_values, success, on_pareto_front, total_evals}
    return  ← worker exits
 ```
 
@@ -164,6 +164,10 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
 {
   "action": "run_benchmark",
   "branch": "gen-0/loss-fn/mutate-0",
+  "benchmark_cmd": "python benchmark.py",
+  "quick_cmd": null,
+  "benchmark_format": "numbers",
+  "objectives": [{"name": "score", "direction": "min"}],
   "target_id": "loss-fn",
   "operation": "mutate",
   "parent_branches": ["seed-baseline"]
@@ -184,18 +188,18 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
 }
 ```
 
-### `evo_step("fitness_ready", branch=..., fitness=..., success=..., operation=..., target_id=..., parent_branches=[...])`
+### `evo_step("fitness_ready", branch=..., fitness_values=[...], success=..., operation=..., target_id=..., parent_branches=[...])`
 
-**Input:** `branch`, `fitness`, `success`, `operation`, `target_id`, `parent_branches` (all required)
+**Input:** `branch`, `fitness_values` (list[float], one per objective), `success`, `operation`, `target_id`, `parent_branches` (all required)
 
 **Output:**
 ```json
 {
   "action": "worker_done",
   "branch": "gen-0/loss-fn/mutate-0",
-  "fitness": 0.0342,
+  "fitness_values": [0.0342],
   "success": true,
-  "is_new_best": true,
+  "on_pareto_front": true,
   "total_evals": 15
 }
 ```
