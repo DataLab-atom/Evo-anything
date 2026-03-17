@@ -15,7 +15,7 @@ const fs = require('fs');
 const os = require('os');
 
 const PKG_ROOT = path.resolve(__dirname, '..');
-const SKILLS_DIR = path.join(PKG_ROOT, 'plugin', 'skills');
+const PLUGIN_DIR = path.join(PKG_ROOT, 'plugin');
 const AGENTS_MD = path.join(PKG_ROOT, 'plugin', 'AGENTS.md');
 const AGENTS_DIR = path.join(PKG_ROOT, 'plugin', 'agents');
 
@@ -51,24 +51,20 @@ function merge(target, source) {
 // ── platform setups ───────────────────────────────────────────────────────────
 
 function setupClaude() {
+  // 通过 enabledPlugins 注册插件目录（符合 Claude Code 插件规范）
   const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
   const settings = readJSON(settingsPath);
-  merge(settings, { mcpServers: { 'evo-engine': MCP_SERVER_ENTRY } });
-  writeJSON(settingsPath, settings);
-  console.log(`  ✅ Updated ${settingsPath}`);
-
-  // 复制 skills（Claude Code 不跟随符号链接）
-  const claudeSkills = path.join(os.homedir(), '.claude', 'skills');
-  fs.mkdirSync(claudeSkills, { recursive: true });
-  for (const skill of fs.readdirSync(SKILLS_DIR)) {
-    const src = path.join(SKILLS_DIR, skill);
-    const dst = path.join(claudeSkills, skill);
-    fs.mkdirSync(dst, { recursive: true });
-    for (const file of fs.readdirSync(src)) {
-      fs.copyFileSync(path.join(src, file), path.join(dst, file));
-    }
-    console.log(`  ✅ Installed skill: ${skill}`);
+  if (!Array.isArray(settings.enabledPlugins)) {
+    settings.enabledPlugins = [];
   }
+  if (!settings.enabledPlugins.includes(PLUGIN_DIR)) {
+    settings.enabledPlugins.push(PLUGIN_DIR);
+  }
+  writeJSON(settingsPath, settings);
+  console.log(`  ✅ Registered plugin: ${PLUGIN_DIR}`);
+  console.log(`  ✅ Updated ${settingsPath}`);
+  console.log(`  ℹ️  Skills available as /evo-anything:<skill-name>`);
+  console.log(`     e.g. /evo-anything:status, /evo-anything:evolve, /evo-anything:hunt`);
 }
 
 function setupCursor(projectDir) {
@@ -160,4 +156,4 @@ if (all || platform === 'openclaw') {
   try { setupOpenclaw(); } catch (e) { console.error('  ❌', e.message); }
 }
 
-console.log('\n✅ Done! 在对话中输入 /status 验证安装。\n');
+console.log('\n✅ Done! 在对话中输入 /evo-anything:status 验证安装。\n');
