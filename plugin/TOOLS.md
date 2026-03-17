@@ -7,6 +7,7 @@
 - `evo_get_status` — check current evolution progress
 - `evo_get_lineage` — trace how a branch evolved
 - `evo_freeze_target` / `evo_boost_target` — manual priority control
+- `evo_revalidate_targets` — verify targets still exist after structural ops
 - `exec git branch -D` / `exec git tag` — branch cleanup and tagging
 - `write` + `canvas` — live fitness dashboard (built-in, updated after each generation)
 
@@ -39,6 +40,16 @@
 - `/session-logs` — *(optional)* cross-run meta-learning; queried on first generation only
 - `evo_record_synergy` — record synergy experiment results
 - `evo_get_lineage` — trace branch ancestry for context
+
+### /evolve Skill (initialization)
+- `evo_init` — initialize a new evolution run with repo, benchmark, objectives
+- `evo_report_seed` — report the baseline fitness of unmodified code
+
+### Standalone Tools (direct access, parallel to evo_step)
+- `evo_next_batch` — get next batch of operations (standalone alternative to `evo_step("begin_generation")`)
+- `evo_report_fitness` — report a branch's fitness (standalone alternative to `evo_step("fitness_ready")`)
+- `evo_select_survivors` — run NSGA-II selection (standalone alternative to `evo_step("select")`)
+- `evo_revalidate_targets` — check all targets still exist after structural ops
 
 ## General Rules
 

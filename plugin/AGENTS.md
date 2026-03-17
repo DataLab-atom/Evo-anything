@@ -126,6 +126,8 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
   "action": "dispatch_workers",
   "generation": 0,
   "batch_size": 8,
+  "objectives": [{"name": "score", "direction": "min"}],
+  "benchmark_format": "numbers",
   "items": [
     {"branch": "gen-0/loss-fn/mutate-0", "operation": "mutate",
      "target_id": "loss-fn", "parent_branches": ["seed-baseline"],
@@ -224,7 +226,16 @@ ReflectAgent receives: selection result with keep/eliminate/best_branch
 
 **Input:** _(no extra args)_
 
-**Output:** Same as `begin_generation` (`dispatch_workers` or `done`).
+**Output:** Same as `begin_generation` (`dispatch_workers`) or:
+```json
+{
+  "action": "done",
+  "reason": "budget exhausted",
+  "total_evals": 500,
+  "best_obj": [0.0342],
+  "pareto_front_size": 3
+}
+```
 
 ## Memory Layout
 
