@@ -321,7 +321,3 @@ gen-{N}/synergy/{targetA}+{targetB}-{V}  # cross-target combination
 ```
 
 Tags: `seed-baseline`, `best-gen-{N}`, `best-overall`
-
-## License
-
-MIT
