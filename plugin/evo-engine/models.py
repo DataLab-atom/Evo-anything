@@ -67,7 +67,7 @@ class SurvivorResult(BaseModel):
     keep: list[str]
     eliminate: list[str]
     best_branch: str
-    best_obj: float
+    best_obj: Optional[float] = None
 
 
 class EvolutionConfig(BaseModel):

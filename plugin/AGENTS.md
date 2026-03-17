@@ -71,7 +71,7 @@ LOOP:
          - Evaluate combined fitness  (use evo_step "code_ready"→"fitness_ready")
          - Record synergy results via evo_record_synergy
       step = evo_step("reflect_done")
-      # server checks budget → action="begin_generation" or "done"
+      # server starts next generation internally → action="generate_code" or "done"
 ```
 
 ## Memory Layout
