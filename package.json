@@ -8,8 +8,7 @@
     "mcp",
     "llm",
     "code-optimization",
-    "openclaw",
-    "claude"
+    "openclaw"
   ],
   "license": "MIT",
   "repository": {
@@ -27,7 +26,6 @@
   },
   "files": [
     "plugin/",
-    "plugin/.claude-plugin/",
     "plugin/.mcp.json",
     "scripts/",
     "README.md",
