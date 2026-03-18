@@ -60,13 +60,15 @@ pip install .
 ### OpenClaw
 
 <details>
-<summary>CLI one-liner (recommended)</summary>
+<summary>CLI one-liner (published package)</summary>
 
 ```bash
 openclaw plugins install openclaw-evo
 openclaw gateway restart
 openclaw plugins doctor   # verify
 ```
+
+> If the package is not published to your registry/source yet, use "Local development mode" below.
 
 </details>
 
@@ -92,18 +94,24 @@ cp -r plugin/ ~/.openclaw/extensions/openclaw-evo/
 ```json
 {
   "plugins": {
+    "allow": ["openclaw-evo"],
     "entries": {
       "openclaw-evo": {
         "enabled": true,
         "config": {}
+      },
+      "acpx": {
+        "enabled": true,
+        "config": {
+          "mcpServers": {
+            "evo-engine": {
+              "command": "node",
+              "args": ["~/.openclaw/extensions/openclaw-evo/bin/evo-engine-stdio.js"],
+              "env": {}
+            }
+          }
+        }
       }
-    }
-  },
-  "mcpServers": {
-    "evo-engine": {
-      "command": "evo-engine",
-      "args": [],
-      "env": {}
     }
   }
 }
@@ -115,7 +123,7 @@ openclaw gateway restart
 
 </details>
 
-**Verify:** Type `/status` in a conversation. Seeing "Evolution not initialized" means the install succeeded.
+**Verify:** Type `/evo-status` in a conversation. Seeing "Evolution not initialized" means the install succeeded.
 
 ---
 
@@ -127,8 +135,10 @@ Add the MCP server to your project root or global `.claude/settings.json`:
 {
   "mcpServers": {
     "evo-engine": {
-      "command": "evo-engine",
-      "type": "stdio"
+      "command": "node",
+      "args": ["/ABS/PATH/TO/Evo-anything/plugin/bin/evo-engine-stdio.js"],
+      "type": "stdio",
+      "env": {}
     }
   }
 }
@@ -152,8 +162,10 @@ Add to `.cursor/mcp.json` in your project root:
 {
   "mcpServers": {
     "evo-engine": {
-      "command": "evo-engine",
-      "type": "stdio"
+      "command": "node",
+      "args": ["/ABS/PATH/TO/Evo-anything/plugin/bin/evo-engine-stdio.js"],
+      "type": "stdio",
+      "env": {}
     }
   }
 }
@@ -175,8 +187,10 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 {
   "mcpServers": {
     "evo-engine": {
-      "command": "evo-engine",
-      "type": "stdio"
+      "command": "node",
+      "args": ["/ABS/PATH/TO/Evo-anything/plugin/bin/evo-engine-stdio.js"],
+      "type": "stdio",
+      "env": {}
     }
   }
 }
@@ -190,7 +204,7 @@ Evo-anything's core is a standard [MCP](https://modelcontextprotocol.io) server.
 
 ```bash
 # Start the server directly (stdio mode)
-evo-engine
+node /ABS/PATH/TO/Evo-anything/plugin/bin/evo-engine-stdio.js
 ```
 
 Available MCP tools: `evo_init`, `evo_register_targets`, `evo_report_seed`, `evo_step`, `evo_next_batch`, `evo_report_fitness`, `evo_select_survivors`, `evo_revalidate_targets`, `evo_get_status`, `evo_get_lineage`, `evo_freeze_target`, `evo_boost_target`, `evo_record_synergy`, `evo_check_cache`.
@@ -270,7 +284,7 @@ The best result of each generation is tagged (`best-gen-{N}`), and the final `be
 |---------|-------------|
 | `/hunt <task description>` | Search GitHub for a suitable repo, auto clone/install/baseline, then start evolution |
 | `/evolve <repo> <benchmark_cmd>` | Start an evolutionary optimization loop on a given repo |
-| `/status` | Check current evolution progress |
+| `/evo-status` | Check current evolution progress |
 | `/report` | Generate a full evolution report |
 | `/boost <target_id>` | Increase the priority of an optimization target |
 | `/freeze <target_id>` | Freeze a target, stopping evolution on it |
@@ -305,7 +319,7 @@ Evo-anything/
     ├── skills/                # user-invocable skills
     │   ├── hunt/              # search and deploy a codebase (with arxiv-watcher)
     │   ├── evolve/            # start evolution loop (with lobster workflows)
-    │   ├── status/            # check progress
+    │   ├── evo-status/        # check progress
     │   ├── report/            # generate report
     │   ├── boost/             # boost target priority
     │   └── freeze/            # freeze a target

@@ -1,0 +1,13 @@
+{
+  "name": "openclaw-evo",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.js",
+  "description": "OpenClaw extension package for Evo-anything",
+  "license": "MIT",
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ]
+  }
+}

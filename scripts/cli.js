@@ -9,7 +9,6 @@
  *   npx evo-anything setup --platform openclaw
  */
 
-const { execSync, spawnSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -19,11 +18,20 @@ const SKILLS_DIR = path.join(PKG_ROOT, 'plugin', 'skills');
 const AGENTS_MD = path.join(PKG_ROOT, 'plugin', 'AGENTS.md');
 const AGENTS_DIR = path.join(PKG_ROOT, 'plugin', 'agents');
 
-const MCP_SERVER_ENTRY = {
-  command: 'evo-engine',
-  type: 'stdio',
-  args: []
-};
+const LAUNCHER_PATH = path.join(PKG_ROOT, 'plugin', 'bin', 'evo-engine-stdio.js');
+
+function mcpServerEntry(command, args) {
+  return {
+    command,
+    type: 'stdio',
+    args,
+  };
+}
+
+function copyDirectory(src, dst) {
+  fs.mkdirSync(dst, { recursive: true });
+  fs.cpSync(src, dst, { recursive: true, force: true });
+}
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -53,7 +61,11 @@ function merge(target, source) {
 function setupClaude() {
   const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
   const settings = readJSON(settingsPath);
-  merge(settings, { mcpServers: { 'evo-engine': MCP_SERVER_ENTRY } });
+  merge(settings, {
+    mcpServers: {
+      'evo-engine': mcpServerEntry(process.execPath, [LAUNCHER_PATH]),
+    },
+  });
   writeJSON(settingsPath, settings);
   console.log(`  ✅ Updated ${settingsPath}`);
 
@@ -76,7 +88,11 @@ function setupCursor(projectDir) {
   const base = projectDir || process.cwd();
   const mcpPath = path.join(base, '.cursor', 'mcp.json');
   const mcp = readJSON(mcpPath);
-  merge(mcp, { mcpServers: { 'evo-engine': MCP_SERVER_ENTRY } });
+  merge(mcp, {
+    mcpServers: {
+      'evo-engine': mcpServerEntry(process.execPath, [LAUNCHER_PATH]),
+    },
+  });
   writeJSON(mcpPath, mcp);
   console.log(`  ✅ Updated ${mcpPath}`);
 
@@ -101,7 +117,11 @@ function setupCursor(projectDir) {
 function setupWindsurf() {
   const mcpPath = path.join(os.homedir(), '.codeium', 'windsurf', 'mcp_config.json');
   const mcp = readJSON(mcpPath);
-  merge(mcp, { mcpServers: { 'evo-engine': MCP_SERVER_ENTRY } });
+  merge(mcp, {
+    mcpServers: {
+      'evo-engine': mcpServerEntry(process.execPath, [LAUNCHER_PATH]),
+    },
+  });
   writeJSON(mcpPath, mcp);
   console.log(`  ✅ Updated ${mcpPath}`);
 }
@@ -109,10 +129,10 @@ function setupWindsurf() {
 function setupOpenclaw() {
   const extDir = path.join(os.homedir(), '.openclaw', 'extensions', 'openclaw-evo');
   const pluginSrc = path.join(PKG_ROOT, 'plugin');
+  const launcher = path.join(extDir, 'bin', 'evo-engine-stdio.js');
 
   // 复制插件文件
-  fs.mkdirSync(extDir, { recursive: true });
-  spawnSync('cp', ['-r', `${pluginSrc}/.`, extDir], { stdio: 'inherit' });
+  copyDirectory(pluginSrc, extDir);
   console.log(`  ✅ Plugin copied to ${extDir}`);
 
   // 写 openclaw.json
@@ -120,7 +140,14 @@ function setupOpenclaw() {
   const config = readJSON(configPath);
   merge(config, {
     plugins: { entries: { 'openclaw-evo': { enabled: true, config: {} } } },
-    mcpServers: { 'evo-engine': { command: 'evo-engine', args: [], env: {} } }
+    mcpServers: {
+      'evo-engine': {
+        type: 'stdio',
+        command: process.execPath,
+        args: [launcher],
+        env: {}
+      }
+    }
   });
   writeJSON(configPath, config);
   console.log(`  ✅ Updated ${configPath}`);
@@ -161,4 +188,4 @@ if (all || platform === 'openclaw') {
   try { setupOpenclaw(); } catch (e) { console.error('  ❌', e.message); }
 }
 
-console.log('\n✅ Done! 在对话中输入 /status 验证安装。\n');
+console.log('\n✅ Done! 在对话中输入 /evo-status 验证安装。\n');
