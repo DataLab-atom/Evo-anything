@@ -5,7 +5,6 @@
   "keywords": [
     "ai",
     "evolutionary-algorithm",
-    "mcp",
     "llm",
     "code-optimization",
     "openclaw"
@@ -26,9 +25,11 @@
   },
   "files": [
     "plugin/",
-    "plugin/.mcp.json",
     "scripts/",
     "README.md",
     "README_EN.md"
-  ]
+  ],
+  "devDependencies": {
+    "@types/node": "^25.5.0"
+  }
 }

@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "evo-engine": {
-      "command": "python",
-      "args": ["server.py"],
-      "cwd": "evo-engine"
-    }
-  }
-}
