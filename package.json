@@ -17,19 +17,26 @@
   "engines": {
     "node": ">=16"
   },
+  "openclaw": {
+    "extensions": ["./dist/index.js"]
+  },
   "bin": {
     "evo-anything": "scripts/cli.js"
   },
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "postinstall": "node scripts/postinstall.js"
   },
   "files": [
+    "dist/",
     "plugin/",
     "scripts/",
     "README.md",
     "README_EN.md"
   ],
   "devDependencies": {
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "typescript": "^5.8.0"
   }
 }
