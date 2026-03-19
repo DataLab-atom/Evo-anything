@@ -21,7 +21,7 @@
     "extensions": ["./dist/index.js"]
   },
   "bin": {
-    "evo-anything": "scripts/cli.js"
+    "openclaw-evo": "scripts/cli.js"
   },
   "scripts": {
     "build": "tsc",
