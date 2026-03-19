@@ -5,7 +5,6 @@
  *   npx evo-anything setup  — configure OpenClaw native plugin
  */
 
-const { spawnSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -39,12 +38,13 @@ function merge(target, source) {
 
 function setupOpenclaw() {
   const extDir = path.join(os.homedir(), '.openclaw', 'extensions', 'openclaw-evo');
-  const pluginSrc = path.join(PKG_ROOT, 'plugin');
+  const projectSrc = PKG_ROOT;
 
-  // Copy plugin files to OpenClaw extensions directory.
-  fs.mkdirSync(extDir, { recursive: true });
-  spawnSync('cp', ['-r', `${pluginSrc}/.`, extDir], { stdio: 'inherit' });
-  console.log(`  Plugin copied to ${extDir}`);
+  // Copy the full project to OpenClaw extensions directory.
+  fs.mkdirSync(path.dirname(extDir), { recursive: true });
+  fs.rmSync(extDir, { recursive: true, force: true });
+  fs.cpSync(projectSrc, extDir, { recursive: true, force: true });
+  console.log(`  Project copied to ${extDir}`);
 
   // Enable the native plugin in openclaw.json.
   const configPath = path.join(os.homedir(), '.openclaw', 'openclaw.json');

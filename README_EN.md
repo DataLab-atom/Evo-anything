@@ -115,7 +115,7 @@ openclaw gateway restart
 
 </details>
 
-**Verify:** Type `/status` in a conversation. Seeing "Evolution not initialized" means the install succeeded.
+**Verify:** Type `/evo-status` in a conversation. Seeing "Evolution not initialized" means the install succeeded.
 
 ---
 
@@ -270,7 +270,7 @@ The best result of each generation is tagged (`best-gen-{N}`), and the final `be
 |---------|-------------|
 | `/hunt <task description>` | Search GitHub for a suitable repo, auto clone/install/baseline, then start evolution |
 | `/evolve <repo> <benchmark_cmd>` | Start an evolutionary optimization loop on a given repo |
-| `/status` | Check current evolution progress |
+| `/evo-status` | Check current evolution progress |
 | `/report` | Generate a full evolution report |
 | `/boost <target_id>` | Increase the priority of an optimization target |
 | `/freeze <target_id>` | Freeze a target, stopping evolution on it |
