@@ -1,5 +1,5 @@
 /**
- * Evo-anything MCP Server — exposes all evolution tools via stdio transport.
+ * OpenClaw-Evo MCP Server — exposes all evolution tools via stdio transport.
  * OpenClaw discovers this through .mcp.json as a bundle MCP server.
  */
 
@@ -304,7 +304,7 @@ function ok(data: unknown) {
 // ---------------------------------------------------------------------------
 
 const server = new McpServer({
-  name: "evo-anything",
+  name: "openclaw-evo",
   version: "0.1.0",
 });
 

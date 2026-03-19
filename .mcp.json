@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "evo-anything": {
+    "openclaw-evo": {
       "command": "node",
       "args": ["/home/user/Evo-anything/dist/server.js"]
     }

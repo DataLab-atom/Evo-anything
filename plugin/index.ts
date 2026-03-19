@@ -1,5 +1,5 @@
 /**
- * Evo-anything — Native OpenClaw plugin entry point.
+ * OpenClaw-Evo — Native OpenClaw plugin entry point.
  *
  * Registers all agent tools for the evolutionary algorithm engine.
  */
