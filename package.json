@@ -36,6 +36,10 @@
     "README.md",
     "README_EN.md"
   ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.0"
+  },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "typescript": "^5.8.0"
