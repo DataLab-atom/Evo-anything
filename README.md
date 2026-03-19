@@ -9,7 +9,7 @@ Evo-anything 是基于论文 **"From Understanding to Excelling: Template-Free A
 ### 前置条件
 
 **必需：**
-- Python >= 3.11
+- Node.js >= 16
 - Git
 - GitHub CLI (`gh`) — 用于 `/hunt` 搜索仓库和自动开 PR
 
@@ -19,7 +19,7 @@ Evo-anything 是基于论文 **"From Understanding to Excelling: Template-Free A
 - `codex` CLI — WorkerAgent 复杂变体生成的备选
 - `lobster` CLI — 原子化 setup 工作流 + PR approval gate
 - `tmux` — 长时间 benchmark 非阻塞后台执行
-- `pyflakes` — 变体提交前 import/name 静态检查（`pip install pyflakes`）
+- `pyflakes` — 变体提交前 import/name 静态检查（`npm install -g pyflakes` 或 `pipx install pyflakes`）
 - OpenClaw skills: `oracle`、`arxiv-watcher`、`summarize`、`session-logs`（通过 `clawhub install <slug>` 安装）
 
 ### 方式一：npm 一键安装（推荐）
@@ -28,7 +28,7 @@ Evo-anything 是基于论文 **"From Understanding to Excelling: Template-Free A
 npm install -g evo-anything
 ```
 
-安装过程中会自动调用 `pip install` 完成 Python MCP server 的安装。
+安装过程中会自动验证依赖并完成 MCP server 的配置。
 
 安装完成后，运行 setup 配置你的 AI IDE：
 
@@ -53,8 +53,8 @@ npx evo-anything setup --platform openclaw
 
 ```bash
 git clone https://github.com/DataLab-atom/Evo-anything.git
-cd Evo-anything/plugin/evo-engine
-pip install .
+cd Evo-anything
+npm install && npm run build
 ```
 
 ---
@@ -235,7 +235,7 @@ export U2E_STATE_DIR=/path/to/your/state
          ↓
   你说：用第 1 个
          ↓
-  clone → pip install → 下载数据 → 跑基线确认能跑
+  clone → 安装依赖 → 下载数据 → 跑基线确认能跑
          ↓
   自动调用 /evolve → 进化循环
          ↓
@@ -299,10 +299,12 @@ Evo-anything/
     │   ├── policy_agent.md    # PolicyAgent
     │   ├── reflect_agent.md   # ReflectAgent（含跨-run 元学习）
     │   └── map_agent.md       # MapAgent（含 oracle 整仓库分析）
-    ├── evo-engine/            # 演化引擎（MCP server）
-    │   ├── server.py          # MCP 工具接口
-    │   ├── models.py          # 数据模型
-    │   └── selection.py       # 选择算法
+    ├── server.ts              # MCP 工具接口（演化引擎）
+    ├── index.ts               # 插件入口
+    ├── src/                   # 核心逻辑
+    │   ├── models.ts          # 数据模型
+    │   ├── selection.ts       # 选择算法
+    │   └── state.ts           # 状态管理
     ├── skills/                # 用户可调用的技能
     │   ├── hunt/              # 搜索并部署代码库（含 arxiv-watcher）
     │   ├── evolve/            # 启动演化循环（含 lobster 工作流）

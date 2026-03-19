@@ -9,7 +9,7 @@ Evo-anything is the engineering implementation of **"From Understanding to Excel
 ### Prerequisites
 
 **Required:**
-- Python >= 3.11
+- Node.js >= 16
 - Git
 - GitHub CLI (`gh`) — required for `/hunt` to search repositories and open PRs
 
@@ -19,7 +19,7 @@ Evo-anything is the engineering implementation of **"From Understanding to Excel
 - `codex` CLI — alternative for WorkerAgent complex variant generation
 - `lobster` CLI — atomic setup workflows + PR approval gate
 - `tmux` — non-blocking background execution for long benchmarks
-- `pyflakes` — static import/name checks before committing variants (`pip install pyflakes`)
+- `pyflakes` — static import/name checks before committing variants (`npm install -g pyflakes` or `pipx install pyflakes`)
 - OpenClaw skills: `oracle`, `arxiv-watcher`, `summarize`, `session-logs` (install via `clawhub install <slug>`)
 
 ### Option 1: npm (recommended)
@@ -28,7 +28,7 @@ Evo-anything is the engineering implementation of **"From Understanding to Excel
 npm install -g evo-anything
 ```
 
-This automatically installs the Python MCP server via `pip` during the npm postinstall step.
+This automatically verifies dependencies and configures the MCP server during the npm postinstall step.
 
 After installation, configure your AI IDE:
 
@@ -51,8 +51,8 @@ npx evo-anything setup --platform openclaw
 
 ```bash
 git clone https://github.com/DataLab-atom/Evo-anything.git
-cd Evo-anything/plugin/evo-engine
-pip install .
+cd Evo-anything
+npm install && npm run build
 ```
 
 ---
@@ -233,7 +233,7 @@ You send: I want SOTA on CIFAR-100-LT
          ↓
   You say: use #1
          ↓
-  clone → pip install → download data → run baseline to confirm it works
+  clone → install deps → download data → run baseline to confirm it works
          ↓
   Automatically calls /evolve → evolution loop begins
          ↓
@@ -298,10 +298,12 @@ Evo-anything/
     │   ├── policy_agent.md    # PolicyAgent
     │   ├── reflect_agent.md   # ReflectAgent (with cross-run meta-learning)
     │   └── map_agent.md       # MapAgent (with oracle whole-repo analysis)
-    ├── evo-engine/            # evolution engine (MCP server)
-    │   ├── server.py          # MCP tool interface
-    │   ├── models.py          # data models
-    │   └── selection.py       # selection algorithms
+    ├── server.ts              # MCP tool interface (evolution engine)
+    ├── index.ts               # plugin entry point
+    ├── src/                   # core logic
+    │   ├── models.ts          # data models
+    │   ├── selection.ts       # selection algorithms
+    │   └── state.ts           # state management
     ├── skills/                # user-invocable skills
     │   ├── hunt/              # search and deploy a codebase (with arxiv-watcher)
     │   ├── evolve/            # start evolution loop (with lobster workflows)
