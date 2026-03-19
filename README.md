@@ -286,7 +286,7 @@ Evo-anything/
 ├── research/                  # 生态调研文档
 │   ├── 01_openclaw_existing_capabilities.md
 │   ├── 02_compatible_products_capabilities.md
-│   ├── 03_evo_anything_analysis.md
+│   ├── 03_openclaw_evo_analysis.md
 │   └── 04_ecosystem_capability_map.md  # 生态能力全景图
 └── plugin/
     ├── openclaw.plugin.json   # 插件定义

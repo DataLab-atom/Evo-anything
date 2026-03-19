@@ -285,7 +285,7 @@ Evo-anything/
 ├── research/                  # ecosystem research docs
 │   ├── 01_openclaw_existing_capabilities.md
 │   ├── 02_compatible_products_capabilities.md
-│   ├── 03_evo_anything_analysis.md
+│   ├── 03_openclaw_evo_analysis.md
 │   └── 04_ecosystem_capability_map.md  # full ecosystem capability map
 └── plugin/
     ├── openclaw.plugin.json   # plugin definition
