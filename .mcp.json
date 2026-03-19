@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "evo-anything": {
+      "command": "node",
+      "args": ["/home/user/Evo-anything/dist/server.js"]
+    }
+  }
+}
