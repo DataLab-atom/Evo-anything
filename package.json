@@ -1,5 +1,5 @@
 {
-  "name": "evo-anything",
+  "name": "openclaw-evo",
   "version": "0.1.0",
   "description": "Git-based evolutionary algorithm design engine. Evolves code via LLM-driven mutation, crossover, and reflection on any git repository.",
   "keywords": [
