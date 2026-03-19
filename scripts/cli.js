@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * cli.js — `openclaw-evo` CLI entry point
+ * cli.js — `evo-anything` CLI entry point
  * Usage:
- *   npx openclaw-evo setup     — configure OpenClaw native plugin
- *   npx openclaw-evo diagnose  — run diagnostics
+ *   npx evo-anything setup     — configure OpenClaw native plugin
+ *   npx evo-anything diagnose  — run diagnostics
  */
 
 const { spawnSync, execFileSync } = require('child_process');
@@ -12,7 +12,7 @@ const fs = require('fs');
 const os = require('os');
 
 const PKG_ROOT = path.resolve(__dirname, '..');
-const EXT_DIR = path.join(os.homedir(), '.openclaw', 'extensions', 'openclaw-evo');
+const EXT_DIR = path.join(os.homedir(), '.openclaw', 'extensions', 'evo-anything');
 const CONFIG_PATH = path.join(os.homedir(), '.openclaw', 'openclaw.json');
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ function fail(msg){ console.log(`  ✗ ${msg}`); }
 // ── diagnose ──────────────────────────────────────────────────────────────────
 
 function diagnose() {
-  console.log('\nopenclaw-evo diagnostics\n');
+  console.log('\nevo-anything diagnostics\n');
   let allOk = true;
 
   function check(label, fn) {
@@ -110,20 +110,20 @@ function diagnose() {
   // 3. OpenClaw installation
   console.log('\n── OpenClaw Integration ──');
   check('extensions directory', () => {
-    if (!fs.existsSync(EXT_DIR)) throw new Error(`${EXT_DIR} not found — run "npx openclaw-evo setup"`);
+    if (!fs.existsSync(EXT_DIR)) throw new Error(`${EXT_DIR} not found — run "npx evo-anything setup"`);
     const files = fs.readdirSync(EXT_DIR);
     return `${files.length} entries in ${EXT_DIR}`;
   });
   check('dist/index.js in extensions', () => {
     const p = path.join(EXT_DIR, 'dist', 'index.js');
-    if (!fs.existsSync(p)) throw new Error('not found — run "npx openclaw-evo setup" to copy');
+    if (!fs.existsSync(p)) throw new Error('not found — run "npx evo-anything setup" to copy');
     return 'exists';
   });
   check('openclaw.json plugin entry', () => {
     if (!fs.existsSync(CONFIG_PATH)) throw new Error(`${CONFIG_PATH} not found`);
     const config = readJSON(CONFIG_PATH);
-    const entry = config?.plugins?.entries?.['openclaw-evo'];
-    if (!entry) throw new Error('no "openclaw-evo" entry in plugins.entries');
+    const entry = config?.plugins?.entries?.['evo-anything'];
+    if (!entry) throw new Error('no "evo-anything" entry in plugins.entries');
     if (!entry.enabled) throw new Error('plugin is disabled');
     return 'enabled';
   });
@@ -131,13 +131,13 @@ function diagnose() {
     const config = readJSON(CONFIG_PATH);
     const allow = config?.plugins?.allow;
     if (!Array.isArray(allow)) throw new Error('plugins.allow is missing or not an array');
-    if (!allow.includes('openclaw-evo')) throw new Error('"openclaw-evo" not in plugins.allow');
+    if (!allow.includes('evo-anything')) throw new Error('"evo-anything" not in plugins.allow');
     return `[${allow.join(', ')}]`;
   });
   check('plugins.installs metadata', () => {
     const config = readJSON(CONFIG_PATH);
-    const inst = config?.plugins?.installs?.['openclaw-evo'];
-    if (!inst) throw new Error('no install entry — run "npx openclaw-evo setup"');
+    const inst = config?.plugins?.installs?.['evo-anything'];
+    if (!inst) throw new Error('no install entry — run "npx evo-anything setup"');
     return `source=${inst.source} v=${inst.version} @ ${inst.installedAt}`;
   });
   check('skills.entries registration', () => {
@@ -174,7 +174,7 @@ function diagnose() {
     console.log('  All checks passed.\n');
   } else {
     console.log('  Some checks failed. Fix the issues above and re-run:\n');
-    console.log('    npx openclaw-evo diagnose\n');
+    console.log('    npx evo-anything diagnose\n');
   }
 
   return allOk;
@@ -183,7 +183,7 @@ function diagnose() {
 // ── setup ─────────────────────────────────────────────────────────────────────
 
 function setupOpenclaw() {
-  console.log('\nopenclaw-evo setup\n');
+  console.log('\nevo-anything setup\n');
 
   // 1. Check dist exists
   const distSrc = path.join(PKG_ROOT, 'dist', 'index.js');
@@ -251,20 +251,20 @@ function setupOpenclaw() {
   // plugins.allow — allowlist
   if (!config.plugins) config.plugins = {};
   if (!Array.isArray(config.plugins.allow)) config.plugins.allow = [];
-  if (!config.plugins.allow.includes('openclaw-evo')) {
-    config.plugins.allow.push('openclaw-evo');
+  if (!config.plugins.allow.includes('evo-anything')) {
+    config.plugins.allow.push('evo-anything');
   }
-  ok('plugins.allow: openclaw-evo added');
+  ok('plugins.allow: evo-anything added');
 
   // plugins.entries
   merge(config, {
-    plugins: { entries: { 'openclaw-evo': { enabled: true, config: {} } } }
+    plugins: { entries: { 'evo-anything': { enabled: true, config: {} } } }
   });
-  ok('plugins.entries: openclaw-evo enabled');
+  ok('plugins.entries: evo-anything enabled');
 
   // plugins.installs — install metadata
   if (!config.plugins.installs) config.plugins.installs = {};
-  config.plugins.installs['openclaw-evo'] = {
+  config.plugins.installs['evo-anything'] = {
     source: 'path',
     sourcePath: PKG_ROOT,
     installPath: EXT_DIR,
@@ -310,7 +310,7 @@ switch (cmd) {
     break;
   default:
     console.log('Usage:');
-    console.log('  npx openclaw-evo setup     — install plugin into OpenClaw');
-    console.log('  npx openclaw-evo diagnose  — run full diagnostics');
+    console.log('  npx evo-anything setup     — install plugin into OpenClaw');
+    console.log('  npx evo-anything diagnose  — run full diagnostics');
     process.exit(0);
 }

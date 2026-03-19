@@ -20,7 +20,7 @@ function check(label, fn) {
   }
 }
 
-console.log('\n🧬 openclaw-evo postinstall\n');
+console.log('\n🧬 evo-anything postinstall\n');
 
 let ok = true;
 
@@ -53,9 +53,9 @@ if (ok) {
   console.log('\n  All checks passed.\n');
 } else {
   console.log('\n  Some checks failed — the plugin may not work correctly.');
-  console.log('  Run "npx openclaw-evo diagnose" for details.\n');
+  console.log('  Run "npx evo-anything diagnose" for details.\n');
 }
 
 console.log('Next steps:');
-console.log('  npx openclaw-evo setup    — install into OpenClaw');
-console.log('  npx openclaw-evo diagnose — run full diagnostics\n');
+console.log('  npx evo-anything setup    — install into OpenClaw');
+console.log('  npx evo-anything diagnose — run full diagnostics\n');

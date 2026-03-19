@@ -1,6 +1,6 @@
-# OpenClaw-Evo Plugin — Git-Based Evolutionary Code Optimizer
+# Evo-anything Plugin — Git-Based Evolutionary Code Optimizer
 
-OpenClaw-Evo is the engineering implementation of **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"** (arXiv:2503.10721). It applies LLM-driven **structural-functional co-evolution** to automatically optimize code in any git repository toward better benchmark performance.
+Evo-anything is the engineering implementation of **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"** (arXiv:2503.10721). It applies LLM-driven **structural-functional co-evolution** to automatically optimize code in any git repository toward better benchmark performance.
 
 > **Paper:** Zhe Zhao, Haibin Wen, Pengkun Wang, Ye Wei, Zaixi Zhang, Xi Lin, Fei Liu, Bo An, Hui Xiong, Yang Wang, Qingfu Zhang. *From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution.* arXiv:2503.10721 [cs.SE], 2025.
 
@@ -25,7 +25,7 @@ OpenClaw-Evo is the engineering implementation of **"From Understanding to Excel
 ### Option 1: npm (recommended)
 
 ```bash
-npm install -g openclaw-evo
+npm install -g evo-anything
 ```
 
 This automatically installs the Python MCP server via `pip` during the npm postinstall step.
@@ -34,13 +34,13 @@ After installation, configure your AI IDE:
 
 ```bash
 # Configure all supported platforms (Claude Code, Cursor, Windsurf, OpenClaw)
-npx openclaw-evo setup
+npx evo-anything setup
 
 # Or configure a specific platform
-npx openclaw-evo setup --platform claude
-npx openclaw-evo setup --platform cursor
-npx openclaw-evo setup --platform windsurf
-npx openclaw-evo setup --platform openclaw
+npx evo-anything setup --platform claude
+npx evo-anything setup --platform cursor
+npx evo-anything setup --platform windsurf
+npx evo-anything setup --platform openclaw
 ```
 
 ---
@@ -63,7 +63,7 @@ pip install .
 <summary>CLI one-liner (recommended)</summary>
 
 ```bash
-openclaw plugins install openclaw-evo
+openclaw plugins install evo-anything
 openclaw gateway restart
 openclaw plugins doctor   # verify
 ```
@@ -86,14 +86,14 @@ openclaw gateway restart
 Copy the plugin to the extensions directory and register it in `~/.openclaw/openclaw.json`:
 
 ```bash
-cp -r plugin/ ~/.openclaw/extensions/openclaw-evo/
+cp -r plugin/ ~/.openclaw/extensions/evo-anything/
 ```
 
 ```json
 {
   "plugins": {
     "entries": {
-      "openclaw-evo": {
+      "evo-anything": {
         "enabled": true,
         "config": {}
       }
@@ -186,7 +186,7 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 
 ### Any Other MCP-Compatible Client
 
-OpenClaw-Evo's core is a standard [MCP](https://modelcontextprotocol.io) server. Any client that supports MCP stdio transport can connect:
+Evo-anything's core is a standard [MCP](https://modelcontextprotocol.io) server. Any client that supports MCP stdio transport can connect:
 
 ```bash
 # Start the server directly (stdio mode)
@@ -211,7 +211,7 @@ Or configure via `openclaw.json`:
 {
   "plugins": {
     "entries": {
-      "openclaw-evo": {
+      "evo-anything": {
         "enabled": true,
         "config": {
           "statePath": "/path/to/your/state"
@@ -244,7 +244,7 @@ You send: I want SOTA on CIFAR-100-LT
 
 ## How It Works
 
-OpenClaw-Evo implements the **U2E (Understanding to Excelling) protocol** proposed in the paper — a template-free, two-dimensional co-evolution framework. Unlike EoH and FunSearch, which rely on predefined templates and optimize only local key functions, U2E performs global joint optimization across both the **functional dimension** (algorithm logic) and the **structural dimension** (code architecture).
+Evo-anything implements the **U2E (Understanding to Excelling) protocol** proposed in the paper — a template-free, two-dimensional co-evolution framework. Unlike EoH and FunSearch, which rely on predefined templates and optimize only local key functions, U2E performs global joint optimization across both the **functional dimension** (algorithm logic) and the **structural dimension** (code architecture).
 
 Every experiment is tracked as a git branch. The evolution loop has six stages:
 
@@ -262,7 +262,7 @@ The best result of each generation is tagged (`best-gen-{N}`), and the final `be
 | Method | Template Required | Optimization Scope | Structural Evolution |
 |--------|------------------|--------------------|----------------------|
 | EoH / FunSearch | Yes (predefined) | Local functions | No |
-| **OpenClaw-Evo (U2E)** | **No** | **Global multi-target** | **Functional + Structural co-evolution** |
+| **Evo-anything (U2E)** | **No** | **Global multi-target** | **Functional + Structural co-evolution** |
 
 ## Skills
 
@@ -285,7 +285,7 @@ Evo-anything/
 ├── research/                  # ecosystem research docs
 │   ├── 01_openclaw_existing_capabilities.md
 │   ├── 02_compatible_products_capabilities.md
-│   ├── 03_openclaw_evo_analysis.md
+│   ├── 03_evo_anything_analysis.md
 │   └── 04_ecosystem_capability_map.md  # full ecosystem capability map
 └── plugin/
     ├── openclaw.plugin.json   # plugin definition
@@ -316,7 +316,7 @@ Evo-anything/
 
 ## Evolution Memory
 
-OpenClaw-Evo maintains structured memory in the target repository to avoid repeating failed attempts:
+Evo-anything maintains structured memory in the target repository to avoid repeating failed attempts:
 
 ```
 memory/
