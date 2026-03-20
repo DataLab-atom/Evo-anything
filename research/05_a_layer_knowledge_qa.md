@@ -52,9 +52,20 @@ E 层各审核工具的输出按以下规则分级：
 
 针对给定内容，从互联网检索相关文献并返回。
 
+- **底层工具**（按优先级）：
+  1. `arxiv-watcher` skill — 搜索 arXiv 返回结构化论文列表（学术文献首选）
+  2. `web_search` — Brave / Gemini / Kimi 等引擎的通用搜索（补充非 arXiv 来源）
+  3. `summarize` skill — 对搜到的论文 PDF 快速提取核心方法
+  4. `academic-deep-research` skill — 需要深度调研时（如综述某个子领域的全部工作）
+- **流程**：搜索 → 去重 → 提取元信息（标题、作者、年份、venue、摘要）→ 返回结构化列表
+
 ## A2 本地文献检索
 
 从本地现存的文献库中检索匹配内容并返回答案。
+
+- **底层工具**：`memory-lancedb` extension（向量语义搜索）
+- **文献库位置**：`paper/literature/` 目录，每篇论文一个 JSON 条目（含元信息 + embedding）
+- **流程**：query embedding → LanceDB 近似最近邻检索 → 返回 top-k 匹配文献
 
 ## A3 代码问答
 
@@ -210,12 +221,82 @@ B 层涉及代码操作的 agent（B1、B3、B4、B5）**直接复用 evo 系统
 > A 层、B 层是 C 层调用的工具包，D/E 层是 C 层产出的下游消费者。
 
 - **输入**：Evo-anything 的演化结果（代码 + 性能数据，已知有效）
-- **输出**（全部存 git）：
-  - 推导森林的完整结构（JSON 序列化）
-  - 深层动机及其验证（自然语言文本，质量由写作智能体负责）
-  - 主贡献（交汇分支）+ 辅助贡献（未交汇分支）
-  - 所有实验证据（通过标记过的 git 分支管理，每轮验证对应一个分支）
-  - 文献关系图谱（多类型节点：现存问题、论文、观点等；边为节点间的自然关系）
+  - 获取方式：`evo_get_status()` 取当前最优结果 + `best-overall` tag 定位最优分支代码 + `evo_get_lineage(branch)` 追溯演化路径
+  - 具体数据：最优分支代码、各代 fitness 数值、Pareto front、演化记忆（`memory/` 目录）
+- **输出**（全部存 `paper/` 目录，git 追踪）：
+  - 推导森林：`paper/derivation_forest.json`（schema 见下）
+  - 深层动机及其验证：`paper/motivation.md`（自然语言文本）
+  - 主贡献（交汇分支）+ 辅助贡献（未交汇分支）：记录在森林 JSON 的节点标记中
+  - 所有实验证据：通过 `paper/exp-*` git 分支管理，每轮验证对应一个分支
+  - 文献关系图谱：`paper/literature_graph.json`（schema 见下）
+
+### 推导森林 JSON Schema
+
+```json
+{
+  "version": 1,
+  "trees": [
+    {
+      "tree_id": "tree-0",
+      "root_change": "改动聚类的简要描述（由 A5 输出）",
+      "nodes": [
+        {
+          "node_id": "tree-0/node-0",
+          "hypothesis": "为什么这个改动有效的假说",
+          "status": "verified | refuted | pending | merged",
+          "evidence": {
+            "experiment_branch": "paper/exp-tree0-node0",
+            "fitness_delta": [0.03],
+            "supports_hypothesis": true
+          },
+          "literature": ["bibtex_key_1", "bibtex_key_2"],
+          "children": ["tree-0/node-1", "tree-0/node-2"],
+          "merged_into": null,
+          "iteration_created": 0,
+          "iteration_resolved": 2
+        }
+      ]
+    }
+  ],
+  "convergence_point": {
+    "node_ids": ["tree-0/node-3", "tree-1/node-2"],
+    "deep_motivation": "多条分支交汇后浮现的深层动机",
+    "verified": true,
+    "verification_branch": "paper/exp-convergence"
+  },
+  "contributions": {
+    "primary": ["tree-0/node-3"],
+    "auxiliary": ["tree-2/node-1"]
+  },
+  "iteration_count": 5,
+  "max_iterations": 10
+}
+```
+
+### 文献关系图谱 JSON Schema
+
+```json
+{
+  "version": 1,
+  "nodes": [
+    {
+      "id": "node-0",
+      "type": "paper | problem | insight | method",
+      "label": "节点标签",
+      "bibtex_key": "引用键（type=paper 时）",
+      "description": "简要描述"
+    }
+  ],
+  "edges": [
+    {
+      "source": "node-0",
+      "target": "node-1",
+      "relation": "addresses | proposes | extends | contradicts | inspires | evaluates_on",
+      "note": "关系说明（可选）"
+    }
+  ]
+}
+```
 
 ## 推导森林回环
 
@@ -261,6 +342,24 @@ B 层涉及代码操作的 agent（B1、B3、B4、B5）**直接复用 evo 系统
 2. **贡献定级**
    - 交汇分支 → 主贡献（由深层动机 Q 统一）
    - 未交汇分支 → 降级为辅助贡献
+
+### 迭代控制参数
+
+用户在调用 `/paper` 时传入，与 `/evolve` 的 `max_evals`、`pop_size` 等同理——用户控制预算，系统在预算内自主决策。
+
+| 参数 | 默认值 | 说明 | 对应 evo 系统 |
+|------|--------|------|--------------|
+| `max_iterations` | 10 | 推导森林最大迭代轮数，达到后强制进入收束 | 类似 `max_fe` |
+| `max_active_branches` | 6 | 同时活跃的推导分支上限，超出时剪掉证据最弱的分支 | 类似 `pop_size` |
+| `max_experiments_per_iteration` | 3 | 每轮迭代最多调 B 层跑多少组实验（控制算力消耗） | 类似 `pop_size` × 每代 |
+| `convergence_patience` | 3 | 连续多少轮无新交汇点或无分支状态变化时，强制收束 | 类似 `stagnation_count` |
+| `venue` | 必填 | 目标投稿会议/期刊名称（D0 模板初始化、E1 格式审核均依赖） | — |
+
+**硬性终止条件**（任一触发即停）：
+1. 出现交汇点且验证通过 → 正常收束
+2. 达到 `max_iterations` → 强制收束，取当前证据最强的分支作为主贡献
+3. 达到 `convergence_patience` → 视为已收敛，按当前状态收束
+4. 所有分支均被剪枝（全部 refuted）→ 回退，报告"演化结果缺乏可解释的深层动机"，请求人工介入
 
 ### 核心设计约束
 
@@ -511,9 +610,19 @@ E2 通过 → 交 E 层全面审核（进入 DECB 超级回环）
 
 A2 本地文献检索的底层引擎。
 
+- **实现**：`memory-lancedb` extension（OpenClaw 官方，语义向量搜索）
+- **Embedding 模型**：复用 `memory-lancedb` 默认配置（当前为 OpenAI text-embedding-3-small）
+- **索引存储**：`paper/literature/.lancedb/` 目录，随 git 追踪
+- **写入时机**：A1 在线检索到新论文后，自动调用 F2 写入本地索引
+
 ## F3 引用管理
 
 A4 输出 BibTeX 标准引用格式的底层支撑。
+
+- **实现**：`paper/references.bib` 作为单一 BibTeX 文件，A4 每次输出引用时追加条目
+- **去重**：按 DOI / arXiv ID 去重，同一论文不重复插入
+- **格式校验**：写入前验证 BibTeX 条目完整性（必填字段：author, title, year, venue/journal）
+- **D 层消费**：D1–D5 写作时直接 `\cite{key}` 引用，D6 编译时 `bibtex` 自动解析
 
 ---
 
