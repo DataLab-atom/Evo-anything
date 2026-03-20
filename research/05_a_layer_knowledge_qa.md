@@ -88,6 +88,22 @@ E 层各审核工具的输出按以下规则分级：
 > 两大职责：**可视化分析**（画图 → 找亮点）与**基准补充**（刷 benchmark → 补实验）。
 > 两条线都与 A 层保持交互，确保结果正确、图表规范。
 
+## 代码操作总纲：继承 evo 系统
+
+B 层涉及代码操作的 agent（B1、B3、B4、B5）**直接复用 evo 系统 WorkerAgent 的全套模式**，不重新定义：
+
+| 操作 | WorkerAgent 已有模式 | B 层直接复用 |
+|------|---------------------|-------------|
+| 分支管理 | `git checkout -b gen-{N}/{target}/{op}-{V}` | B4: `git checkout -b paper/adapt-{dataset}` |
+| 代码生成 | 三级降级：`claude` CLI → `codex` CLI → 自己 `edit`/`write` | B1/B3/B4 全部使用 |
+| 静态检查 | `python -m py_compile` + `pyflakes` | B4 代码修改后必过 |
+| 安全审查 | `evo_step("code_ready")` → PolicyAgent 审 diff | B4 代码修改后必过 |
+| 隔离执行 | `git worktree add` → 执行 → `git worktree remove` | B5 实验执行 |
+| 非阻塞执行 | `tmux new-session -d` + 轮询（>30s 的任务） | B5 长时间训练 |
+| 输出解析 | `benchmark_format == "numbers"` → 末行空格分隔；`"json"` → 末行 JSON | B5 结果收集 |
+| 缓存检查 | `evo_check_cache(code_hash)` 跳过已评估的变体 | B5 执行前先查 |
+| 保护规则 | `state.config.protected_patterns` 禁止改 benchmark/eval 脚本 | B4 PolicyAgent 继承 |
+
 ---
 
 ## B-I 可视化分析（画图找亮点）
@@ -102,7 +118,7 @@ E 层各审核工具的输出按以下规则分级：
 - **流程**：
   1. 解析期望结论，确定需要对比的指标和维度
   2. 选择图表类型（loss 曲线、柱状图、热力图等）
-  3. 生成初版分析图
+  3. **用 coding agent（三级降级）生成 matplotlib/seaborn 脚本**，`exec python` 执行出图
 - **输出**：初版图表 + 数据是否支持期望的判定
 
 ### B2 亮点挖掘与一致性分析
@@ -123,7 +139,7 @@ E 层各审核工具的输出按以下规则分级：
 - **输入**：确认无误的初版图表
 - **流程**：
   1. 调用 **A4** 检索目标期刊/会议的图表规范与高引论文的图表示例
-  2. 根据 A 层反馈调整配色、字体、图例、坐标轴标注等
+  2. **用 coding agent（三级降级）修改 matplotlib/seaborn 脚本**，调整配色、字体、图例、坐标轴标注等
   3. 确保符合投稿目标的格式要求（分辨率、字号、单双栏等）
 - **输出**：精修后的出版级图表
 
@@ -153,18 +169,25 @@ E 层各审核工具的输出按以下规则分级：
 - **流程**：
   1. 调用 **A4** 确认目标数据集的标准评测协议（数据划分、评价指标、预处理方式）
   2. 调用 **A3** 分析现有代码的数据加载接口
-  3. 编写/修改数据适配代码（dataloader、预处理、评价脚本）
-- **输出**：可直接运行的适配代码
+  3. `git checkout -b paper/adapt-{dataset}` 从 best-overall 创建分支
+  4. **用 coding agent（三级降级）编写/修改数据适配代码**（dataloader、预处理、评价脚本）
+  5. `python -m py_compile` + `pyflakes` 静态检查
+  6. `git commit` → `evo_step("code_ready")` → **PolicyAgent 审 diff**（继承 `protected_patterns` 规则）
+- **输出**：可直接运行的适配代码（已提交到 paper/ 分支）
 
 ### B5 执行与结果收集
 
-在沙箱中运行适配后的代码，收集性能数据。
+在 git worktree 隔离环境中运行适配后的代码，收集性能数据。
 
-- **输入**：适配代码、目标数据集
+- **输入**：B4 输出的 paper/ 分支、目标数据集
 - **流程**：
-  1. 沙箱环境中执行训练/推理
-  2. 收集各指标的数值结果
-  3. 整理为标准对比表格（含 baseline 和 SOTA 方法的公开数据）
+  1. 计算 `code_hash`，调 `evo_check_cache(code_hash)` — 若 evo 演化过程中已评估过，直接取缓存结果
+  2. `git worktree add /tmp/paper-eval-{id} {branch}` 创建隔离工作树
+  3. 短任务：`exec cd /tmp/paper-eval-{id} && {benchmark_cmd}` 直接执行
+  4. 长任务（>30s）：`tmux new-session -d -s paper-{id} "cd /tmp/paper-eval-{id} && {cmd}"` 非阻塞执行，轮询完成
+  5. 解析输出：复用 evo 系统的 `benchmark_format`（`"numbers"` → 末行空格分隔数字；`"json"` → 末行 JSON）
+  6. `git worktree remove /tmp/paper-eval-{id}` 清理
+  7. 整理为标准对比表格（含 baseline 和 SOTA 方法的公开数据）
 - **输出**：性能对比表格
 
 ### B6 结果校验（与 A 层交互）
