@@ -1,0 +1,7 @@
+lineage_2d_gen_lane.png：Branch lineage in generation-lane space. Each node denotes an evaluated branch and is color-coded by optimization target; directed edges indicate parent-child inheritance, illustrating how candidate solutions propagate across generations.
+
+lineage_2d_gen_runtime.png：Runtime evolution over generations on a logarithmic scale. The vertical axis reports runtime in milliseconds (10^-2 to 10^2), where lower values indicate better performance; lineage edges connect parent and offspring branches to show performance transitions.
+
+lineage_2d_lane_runtime.png：Runtime distribution across branch lanes on a logarithmic scale. This projection emphasizes within-generation spread and cross-lane variability, while parent-child connections reveal local trajectories of improvement and regression.
+
+lineage_3d：Three-dimensional branch lineage with runtime as the vertical performance axis. The x-axis represents generation index, the y-axis denotes branch lane position, and the z-axis reports runtime in milliseconds (log-scaled); nodes are color-coded by optimization target and connected by parent-child edges to visualize the joint dynamics of structural evolution and performance change.

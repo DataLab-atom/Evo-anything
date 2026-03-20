@@ -1,0 +1,903 @@
+{
+  "config": {
+    "repo_path": "C:\\Users\\cankun\\.openclaw\\workspace\\AircraftLanding-evo-20260320",
+    "benchmark": {
+      "cmd": "python evaluate.py",
+      "output_format": "numbers",
+      "quick_cmd": null
+    },
+    "objectives": [
+      {
+        "name": "score",
+        "direction": "max"
+      }
+    ],
+    "max_fe": 80,
+    "pop_size": 10,
+    "mutation_rate": 0.5,
+    "structural_rate": 0.2,
+    "directions": [],
+    "synergy_interval": 3,
+    "top_k_survive": 5,
+    "protected_patterns": [
+      "benchmark*.py",
+      "eval*.py",
+      "evaluate*.py",
+      "run_eval*",
+      "test_bench*",
+      "*.sh"
+    ]
+  },
+  "generation": 4,
+  "total_evals": 32,
+  "seed_obj": [
+    0.128816
+  ],
+  "seed_branch": "seed-baseline",
+  "best_obj_overall": [
+    0.821868
+  ],
+  "best_branch_overall": "gen-0/plane_ordering/mutate-0",
+  "pareto_front": [
+    "gen-0/plane_ordering/mutate-0",
+    "gen-0/plane_ordering/crossover-0",
+    "gen-3/plane_ordering/crossover-0",
+    "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0"
+  ],
+  "targets": {
+    "plane_ordering": {
+      "id": "plane_ordering",
+      "file": "evo_func.py",
+      "function": "solve",
+      "description": "Determines the order in which planes are assigned landing times. Currently uses 4 different sorting strategies: 'latest' (by latest time), 'target' (by target time), 'slack' (by time window flexibility), and 'earliest' (by earliest time). Each strategy sorts by multiple keys to break ties.",
+      "hint": "",
+      "derived_from": [],
+      "impact": "Critical for optimization quality. The order in which planes are considered fundamentally affects the final schedule quality since earlier assignments constrain later ones. Different orderings can produce drastically different total penalties. This is the most influential decision point in the greedy algorithm.",
+      "status": "active",
+      "temperature": 1.6,
+      "current_best_obj": [
+        0.821868
+      ],
+      "current_best_branch": "gen-0/plane_ordering/mutate-0",
+      "pareto_branches": [
+        "gen-0/plane_ordering/mutate-0",
+        "gen-0/plane_ordering/crossover-0",
+        "gen-3/plane_ordering/crossover-0",
+        "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0"
+      ],
+      "stagnation_count": 0
+    },
+    "runway_selection": {
+      "id": "runway_selection",
+      "file": "evo_func.py",
+      "function": "solve",
+      "description": "Chooses which runway to assign each plane to. Currently uses 2 strategies: 'min_lb' (minimizes lower bound time) and 'min_penalty' (minimizes landing penalty). Candidates are sorted and the best runway is selected.",
+      "hint": "",
+      "derived_from": [],
+      "impact": "High impact on solution quality. Different runway choices affect both the current plane's penalty and future planes' available time windows due to separation constraints. The 'min_penalty' vs 'min_lb' trade-off balances immediate vs long-term optimization goals.",
+      "status": "active",
+      "temperature": 1.6,
+      "current_best_obj": [
+        0.817071
+      ],
+      "current_best_branch": "gen-3/runway_selection/mutate-0",
+      "pareto_branches": [
+        "gen-3/runway_selection/mutate-0"
+      ],
+      "stagnation_count": 0
+    },
+    "landing_time_calculation": {
+      "id": "landing_time_calculation",
+      "file": "evo_func.py",
+      "function": "solve",
+      "description": "Calculates the actual landing time for a plane on a chosen runway. Currently uses 2 modes: 'lb' (lands at lower bound) and 'target_clip' (lands at target time clipped to feasible range). The lower bound is determined by separation constraints from previous landings.",
+      "hint": "",
+      "derived_from": [],
+      "impact": "Directly determines penalty values. The choice between landing at the earliest feasible time vs attempting to hit target time affects penalty accumulation. 'target_clip' may reduce penalties for individual planes but could create worse constraints for future planes.",
+      "status": "active",
+      "temperature": 2.0,
+      "current_best_obj": [
+        0.817071
+      ],
+      "current_best_branch": "gen-1/landing_time_calculation/crossover-0",
+      "pareto_branches": [
+        "gen-1/landing_time_calculation/crossover-0",
+        "gen-2/landing_time_calculation/structural-0",
+        "gen-2/landing_time_calculation/crossover-0",
+        "gen-2/landing_time_calculation/mutate-0",
+        "gen-3/landing_time_calculation/crossover-0"
+      ],
+      "stagnation_count": 0
+    },
+    "strategy_attempt_sequence": {
+      "id": "strategy_attempt_sequence",
+      "file": "evo_func.py",
+      "function": "solve",
+      "description": "Defines the sequence of 5 strategy combinations to try: (latest,min_lb,lb), (slack,min_lb,lb), (target,min_lb,lb), (target,min_penalty,target_clip), (earliest,min_lb,lb). Returns the first valid complete schedule found.",
+      "hint": "",
+      "derived_from": [],
+      "impact": "Affects both solution quality and algorithm efficiency. The ordering determines which strategy is used when multiple could succeed. Earlier strategies are preferred even if later ones might produce better schedules. Different sequences could find better solutions or fail faster on infeasible instances.",
+      "status": "active",
+      "temperature": 1.6,
+      "current_best_obj": [
+        0.821868
+      ],
+      "current_best_branch": "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0",
+      "pareto_branches": [
+        "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0"
+      ],
+      "stagnation_count": 0
+    }
+  },
+  "individuals": {
+    "gen-0/strategy_attempt_sequence/crossover-0": {
+      "branch": "gen-0/strategy_attempt_sequence/crossover-0",
+      "generation": 0,
+      "target_id": "strategy_attempt_sequence",
+      "operation": "crossover",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.349665
+      ],
+      "pareto_rank": 3,
+      "success": true,
+      "code_hash": "d6d077d01c6b650f37b1d6afde4e94fe31ebe461cd7431fc6acba4975cbdd5c1",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [8220.0, 1350.0, 330.0]\nairland2.txt: [15540.0, 2670.0, 270.0]\nairland3.txt: [19270.0, 4260.0, 690.0]\nairland4.txt: [17020.0, 3100.0, 1200.0, 690.0]\nairland5.txt: [23470.0, 3420.0, 420.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 151205.0, 55870.0]\nairland9.txt: [36839.35999999999, 7648.01, 2300.3300000000004, 0.0]\nairland10.txt: [54113.54000000003, 9559.779999999999, 1785.5499999999997, 234.25, 0.0",
+      "timestamp": 1773984655.1056943
+    },
+    "gen-0/runway_selection/mutate-0": {
+      "branch": "gen-0/runway_selection/mutate-0",
+      "generation": 0,
+      "target_id": "runway_selection",
+      "operation": "mutate",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.349665
+      ],
+      "pareto_rank": 2,
+      "success": true,
+      "code_hash": "26a732322881c8d51bd9fc8d6bd1eaea6f86566f8bd14b57f880625bf17ff10b",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [8220.0, 1350.0, 330.0]\nairland2.txt: [15540.0, 2670.0, 270.0]\nairland3.txt: [19270.0, 4260.0, 690.0]\nairland4.txt: [17020.0, 3100.0, 1200.0, 690.0]\nairland5.txt: [23470.0, 3420.0, 420.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 151205.0, 55870.0]\nairland9.txt: [36839.35999999999, 7648.01, 2300.3300000000004, 0.0]\nairland10.txt: [54113.54000000003, 9559.779999999999, 1785.5499999999997, 234.25, 0.0",
+      "timestamp": 1773984659.4980323
+    },
+    "gen-0/runway_selection/crossover-0": {
+      "branch": "gen-0/runway_selection/crossover-0",
+      "generation": 0,
+      "target_id": "runway_selection",
+      "operation": "crossover",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.349665
+      ],
+      "pareto_rank": 2,
+      "success": true,
+      "code_hash": "fc2afa9d6dfe26894a582e57ded0f1e16fd32607",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [8220.0, 1350.0, 330.0]\nairland2.txt: [15540.0, 2670.0, 270.0]\nairland3.txt: [19270.0, 4260.0, 690.0]\nairland4.txt: [17020.0, 3100.0, 1200.0, 690.0]\nairland5.txt: [23470.0, 3420.0, 420.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 151205.0, 55870.0]\nairland9.txt: [36839.35999999999, 7648.01, 2300.3300000000004, 0.0]\nairland10.txt: [54113.54000000003, 9559.779999999999, 1785.5499999999997, 234.25, 0.0",
+      "timestamp": 1773984711.0963
+    },
+    "gen-0/landing_time_calculation/crossover-0": {
+      "branch": "gen-0/landing_time_calculation/crossover-0",
+      "generation": 0,
+      "target_id": "landing_time_calculation",
+      "operation": "crossover",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.146797
+      ],
+      "pareto_rank": 3,
+      "success": true,
+      "code_hash": "7f65d5394155eb388be93ac813587ae3c8b901ca",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [3130.0, 4000.0, 4130.0]\nairland2.txt: [4600.0, 6690.0, 6940.0]\nairland3.txt: [7140.0, 9550.0, 9720.0]\nairland4.txt: [7730.0, 7980.0, 8970.0, 9330.0]\nairland5.txt: [9270.0, 8190.0, 9090.0, 9330.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [1550.0, 7639.0]\nairland8.txt: [85845.0, 101645.0, 101960.0]\nairland9.txt: [41325.90999999999, 51775.42999999999, 52977.15, 53183.19]\nairland10.txt: [59213.58, 72406.76000000002, 73397.21000000002, 73465.5",
+      "timestamp": 1773984791.5565045
+    },
+    "gen-0/landing_time_calculation/mutate-0": {
+      "branch": "gen-0/landing_time_calculation/mutate-0",
+      "generation": 0,
+      "target_id": "landing_time_calculation",
+      "operation": "mutate",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.153836
+      ],
+      "pareto_rank": 2,
+      "success": true,
+      "code_hash": "01cd7a2fb638b647c8b42cc067be0e8a039925066152d88701c825c3c0c358a4",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [8220.0, 1350.0, 330.0]\nairland2.txt: [15540.0, 3330.0, 270.0]\nairland3.txt: [19270.0, 4260.0, 2580.0]\nairland4.txt: [17020.0, 3400.0, 1440.0, 690.0]\nairland5.txt: [23470.0, 3790.0, 510.0, 210.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 161305.0, 98875.0]\nairland9.txt: [36839.35999999999, 10661.92, 4142.070000000001, 1518.04]\nairland10.txt: [54113.54000000003, 13318.090000000004, 5290.35, 3203.54, 770.9",
+      "timestamp": 1773984827.8418972
+    },
+    "gen-0/plane_ordering/mutate-0": {
+      "branch": "gen-0/plane_ordering/mutate-0",
+      "generation": 0,
+      "target_id": "plane_ordering",
+      "operation": "mutate",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.821868
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "6ff226a46ec54b0494ffc11b2aadfd3c6ae155507805d329d413feb4969fbaa2",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.817071\ndev_score  : 0.810115\ntest_score : 0.821868",
+      "timestamp": 1773984858.607099
+    },
+    "gen-0/plane_ordering/crossover-0": {
+      "branch": "gen-0/plane_ordering/crossover-0",
+      "generation": 0,
+      "target_id": "plane_ordering",
+      "operation": "crossover",
+      "parent_branches": [
+        "seed-baseline"
+      ],
+      "fitness": [
+        0.821868
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [1210.0, 120.0, 0.0]\nairland2.txt: [2030.0, 210.0, 0.0]\nairland3.txt: [2870.0, 60.0, 0.0]\nairland4.txt: [4480.0, 680.0, 130.0, 0.0]\nairland5.txt: [7120.0, 1220.0, 240.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, 0.0]\nairland11.txt: [27558.350000000017,",
+      "timestamp": 1773984899.6824434
+    },
+    "gen-1/runway_selection/mutate-0": {
+      "branch": "gen-1/runway_selection/mutate-0",
+      "generation": 1,
+      "target_id": "runway_selection",
+      "operation": "mutate",
+      "parent_branches": [
+        "gen-0/runway_selection/crossover-0"
+      ],
+      "fitness": [
+        0.128816
+      ],
+      "pareto_rank": 4,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "score: 0.128816, dev_score: 0.105047, test_score: 0.145207",
+      "timestamp": 1773985009.1388142
+    },
+    "gen-1/runway_selection/crossover-0": {
+      "branch": "gen-1/runway_selection/crossover-0",
+      "generation": 1,
+      "target_id": "runway_selection",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/runway_selection/crossover-0",
+        "gen-0/runway_selection/mutate-0"
+      ],
+      "fitness": [
+        0.128816
+      ],
+      "pareto_rank": 3,
+      "success": true,
+      "code_hash": "62f89d678c331347290050ca8d7925567a316226cf2e76cfeea12cbafd6c5cfb",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [3770.0, 3200.0, 4070.0]\nairland2.txt: [4480.0, 6550.0, 6940.0]\nairland3.txt: [10260.0, 8870.0, 9720.0]\nairland4.txt: [8540.0, 7110.0, 8940.0, 9330.0]\nairland5.txt: [9970.0, 7920.0, 9030.0, 9330.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [1550.0, 7639.0]\nairland8.txt: [74075.0, 71465.0, 87120.0]\nairland9.txt: [41325.90999999999, 51775.42999999999, 52977.15, 53183.19]\nairland10.txt: [59213.58, 72406.76000000002, 73397.21000000002, 73465.57",
+      "timestamp": 1773985169.2730942
+    },
+    "gen-1/strategy_attempt_sequence/crossover-0": {
+      "branch": "gen-1/strategy_attempt_sequence/crossover-0",
+      "generation": 1,
+      "target_id": "strategy_attempt_sequence",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/strategy_attempt_sequence/crossover-0"
+      ],
+      "fitness": [
+        0.128816
+      ],
+      "pareto_rank": 5,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "score: 0.128816, dev_score: 0.105047, test_score: 0.145207",
+      "timestamp": 1773985202.1728363
+    },
+    "gen-1/landing_time_calculation/crossover-0": {
+      "branch": "gen-1/landing_time_calculation/crossover-0",
+      "generation": 1,
+      "target_id": "landing_time_calculation",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/landing_time_calculation/mutate-0",
+        "gen-0/landing_time_calculation/crossover-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "01e7064b66b73b720cf1652acff4d03c9afb551c",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [1210.0, 120.0, 0.0]\nairland2.txt: [2030.0, 210.0, 0.0]\nairland3.txt: [2870.0, 60.0, 0.0]\nairland4.txt: [4480.0, 680.0, 130.0, 0.0]\nairland5.txt: [7120.0, 1220.0, 240.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, 0.0]\nairland11.txt: [27558.350000000017,",
+      "timestamp": 1773985214.6303093
+    },
+    "gen-2/plane_ordering/crossover-0": {
+      "branch": "gen-2/plane_ordering/crossover-0",
+      "generation": 2,
+      "target_id": "plane_ordering",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/plane_ordering/mutate-0",
+        "gen-0/plane_ordering/crossover-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 2,
+      "success": true,
+      "code_hash": "28919edbe47585a8daa974df6a9f919862ac8fc1eb1003083466c6163fe03a42",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [1210.0, 120.0, 0.0]\nairland2.txt: [2030.0, 210.0, 0.0]\nairland3.txt: [2870.0, 60.0, 0.0]\nairland4.txt: [4480.0, 680.0, 130.0, 0.0]\nairland5.txt: [7120.0, 1220.0, 240.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, 0.0]\nairland11.txt: [27558.350000000017,",
+      "timestamp": 1773985829.0512238
+    },
+    "gen-2/runway_selection/crossover-0": {
+      "branch": "gen-2/runway_selection/crossover-0",
+      "generation": 2,
+      "target_id": "runway_selection",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/runway_selection/crossover-0",
+        "gen-0/runway_selection/mutate-0"
+      ],
+      "fitness": [
+        0.135771
+      ],
+      "pareto_rank": 3,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.135771\ndev_score  : 0.146502\ntest_score : 0.128370",
+      "timestamp": 1773985990.5811546
+    },
+    "gen-2/runway_selection/mutate-0": {
+      "branch": "gen-2/runway_selection/mutate-0",
+      "generation": 2,
+      "target_id": "runway_selection",
+      "operation": "mutate",
+      "parent_branches": [
+        "gen-0/runway_selection/mutate-0"
+      ],
+      "fitness": [
+        0.128816
+      ],
+      "pareto_rank": 4,
+      "success": true,
+      "code_hash": "9bb63fc4a6d762b2b22ec9d58401f8eb13f3f8e5",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.128816\ndev_score  : 0.105047\ntest_score : 0.145207",
+      "timestamp": 1773986069.5566378
+    },
+    "gen-2/landing_time_calculation/structural-0": {
+      "branch": "gen-2/landing_time_calculation/structural-0",
+      "generation": 2,
+      "target_id": "landing_time_calculation",
+      "operation": "structural",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "d0006c2785906eb5b3b88a37fbf89c09d131da78",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.817071\ndev_score  : 0.810115\ntest_score : 0.821868",
+      "timestamp": 1773986152.837437
+    },
+    "gen-2/landing_time_calculation/crossover-0": {
+      "branch": "gen-2/landing_time_calculation/crossover-0",
+      "generation": 2,
+      "target_id": "landing_time_calculation",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0",
+        "gen-0/landing_time_calculation/mutate-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.817071\ndev_score  : 0.810115\ntest_score : 0.821868",
+      "timestamp": 1773986257.1583831
+    },
+    "gen-2/landing_time_calculation/mutate-0": {
+      "branch": "gen-2/landing_time_calculation/mutate-0",
+      "generation": 2,
+      "target_id": "landing_time_calculation",
+      "operation": "mutate",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "032efe4",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [1210.0, 120.0, 0.0]\nairland2.txt: [2030.0, 210.0, 0.0]\nairland3.txt: [2870.0, 60.0, 0.0]\nairland4.txt: [4480.0, 680.0, 130.0, 0.0]\nairland5.txt: [7120.0, 1220.0, 240.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, 0.0]\nairland11.txt: [27558.350000000017,",
+      "timestamp": 1773986374.0578258
+    },
+    "gen-2/strategy_attempt_sequence/mutate-0": {
+      "branch": "gen-2/strategy_attempt_sequence/mutate-0",
+      "generation": 2,
+      "target_id": "strategy_attempt_sequence",
+      "operation": "mutate",
+      "parent_branches": [
+        "gen-0/strategy_attempt_sequence/crossover-0"
+      ],
+      "fitness": [
+        0.144457
+      ],
+      "pareto_rank": 4,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.144457\ndev_score  : 0.140116\ntest_score : 0.147451",
+      "timestamp": 1773986588.798206
+    },
+    "gen-3/plane_ordering/crossover-0": {
+      "branch": "gen-3/plane_ordering/crossover-0",
+      "generation": 3,
+      "target_id": "plane_ordering",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/plane_ordering/mutate-0",
+        "gen-0/plane_ordering/crossover-0"
+      ],
+      "fitness": [
+        0.821868
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "D9069D9592589299D1D008F60D785BF3DB7E411C69D437EEFE90981D500EF36F",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [1210.0, 120.0, 0.0]\nairland2.txt: [2030.0, 210.0, 0.0]\nairland3.txt: [2870.0, 60.0, 0.0]\nairland4.txt: [4480.0, 680.0, 130.0, 0.0]\nairland5.txt: [7120.0, 1220.0, 240.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, 0.0]\nairland11.txt: [27558.350000000017,",
+      "timestamp": 1773986751.9293528
+    },
+    "gen-3/runway_selection/crossover-0": {
+      "branch": "gen-3/runway_selection/crossover-0",
+      "generation": 3,
+      "target_id": "runway_selection",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/runway_selection/crossover-0",
+        "gen-0/runway_selection/mutate-0"
+      ],
+      "fitness": [
+        0.128816
+      ],
+      "pareto_rank": 4,
+      "success": true,
+      "code_hash": "2bd95aa77253beb416e7e7a39ff74366b0b66d1e",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [3770.0, 3200.0, 4070.0]\nairland2.txt: [4480.0, 6550.0, 6940.0]\nairland3.txt: [10260.0, 8870.0, 9720.0]\nairland4.txt: [8540.0, 7110.0, 8940.0, 9330.0]\nairland5.txt: [9970.0, 7920.0, 9030.0, 9330.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [1550.0, 7639.0]\nairland8.txt: [74075.0, 71465.0, 87120.0]\nairland9.txt: [41325.90999999999, 51775.42999999999, 52977.15, 53183.19]\nairland10.txt: [59213.58, 72406.76000000002, 73397.21000000002, 73465.57",
+      "timestamp": 1773986802.6138518
+    },
+    "gen-3/landing_time_calculation/structural-0": {
+      "branch": "gen-3/landing_time_calculation/structural-0",
+      "generation": 3,
+      "target_id": "landing_time_calculation",
+      "operation": "structural",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0"
+      ],
+      "fitness": [
+        0.143103
+      ],
+      "pareto_rank": 3,
+      "success": true,
+      "code_hash": "901d773",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.143103\ndev_score  : 0.117933\ntest_score : 0.160461",
+      "timestamp": 1773986829.277738
+    },
+    "gen-3/runway_selection/mutate-0": {
+      "branch": "gen-3/runway_selection/mutate-0",
+      "generation": 3,
+      "target_id": "runway_selection",
+      "operation": "mutate",
+      "parent_branches": [
+        "gen-0/runway_selection/mutate-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "DEE48AD2F28080A3241226633D3FD35339BF3023CDBBD7947CE844A3E9081F13",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [1210.0, 120.0, 0.0]\nairland2.txt: [2030.0, 210.0, 0.0]\nairland3.txt: [2870.0, 60.0, 0.0]\nairland4.txt: [4480.0, 680.0, 130.0, 0.0]\nairland5.txt: [7120.0, 1220.0, 240.0, 0.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, 0.0]\nairland11.txt: [27558.350000000017,",
+      "timestamp": 1773986892.7300248
+    },
+    "gen-3/plane_ordering/mutate-0": {
+      "branch": "gen-3/plane_ordering/mutate-0",
+      "generation": 3,
+      "target_id": "plane_ordering",
+      "operation": "mutate",
+      "parent_branches": [
+        "gen-0/plane_ordering/crossover-0"
+      ],
+      "fitness": [
+        0.544681
+      ],
+      "pareto_rank": 3,
+      "success": true,
+      "code_hash": "83826173631a233d",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [40140.0, 1350.0, 330.0]\nairland2.txt: [81900.0, 73590.0, 67080.0]\nairland3.txt: [100290.0, 78300.0, 72030.0]\nairland4.txt: [124120.0, 94690.0, 84030.0, 75390.0]\nairland5.txt: [138400.0, 101470.0, 88680.0, 72450.0]\nairland6.txt: [24442.0, 882.0, 0.0]\nairland7.txt: [3974.0, 0.0]\nairland8.txt: [4390.0, 295.0, 0.0]\nairland9.txt: [14265.890000000003, 617.14, 89.08000000000001, 0.0]\nairland10.txt: [36372.060000000005, 2122.7599999999998, 250.92, 46.28, ",
+      "timestamp": 1773986944.5838544
+    },
+    "gen-3/strategy_attempt_sequence/crossover-0": {
+      "branch": "gen-3/strategy_attempt_sequence/crossover-0",
+      "generation": 3,
+      "target_id": "strategy_attempt_sequence",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-0/strategy_attempt_sequence/crossover-0",
+        "gen-1/strategy_attempt_sequence/crossover-0"
+      ],
+      "fitness": [
+        0.383903
+      ],
+      "pareto_rank": 2,
+      "success": true,
+      "code_hash": "f07072ae261abb6b8266a4366a3dde59a2c815a8",
+      "raw_output": "====== Raw Penalty by Case ======\nairland1.txt: [37617.10234, 13290.400000000001, 0.0]\nairland2.txt: [15540.0, 28281.064999999995, 0.0]\nairland3.txt: [119219.55370583771, 46069.063328, 0.0]\nairland4.txt: [17020.0, 112879.29340426002, 24940.039999999994, 0.0]\nairland5.txt: [23470.0, 102395.2042186, 56668.9781, 0.0]\nairland6.txt: [24442.0, 4043.34, 0.0]\nairland7.txt: [7457.327768195775, 0.0]\nairland8.txt: [74075.0, 161305.0, 0.0]\nairland9.txt: [36839.35999999999, 61173.3749368588, 572.055999999999",
+      "timestamp": 1773987125.4393399
+    },
+    "gen-3/landing_time_calculation/crossover-0": {
+      "branch": "gen-3/landing_time_calculation/crossover-0",
+      "generation": 3,
+      "target_id": "landing_time_calculation",
+      "operation": "crossover",
+      "parent_branches": [
+        "gen-2/landing_time_calculation/structural-0",
+        "gen-2/landing_time_calculation/crossover-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "score      : 0.817071\ndev_score  : 0.810115\ntest_score : 0.821868",
+      "timestamp": 1773987352.6911092
+    },
+    "gen-3/synergy/plane_ordering+landing_time_calculation-0": {
+      "branch": "gen-3/synergy/plane_ordering+landing_time_calculation-0",
+      "generation": 3,
+      "target_id": "plane_ordering",
+      "operation": "synergy",
+      "parent_branches": [
+        "gen-0/plane_ordering/mutate-0",
+        "gen-1/landing_time_calculation/crossover-0"
+      ],
+      "fitness": [
+        0.817071
+      ],
+      "pareto_rank": 2,
+      "success": true,
+      "code_hash": "396cb54",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.817071\ndev_score  : 0.810115\ntest_score : 0.821868",
+      "timestamp": 1773988052.3774123
+    },
+    "gen-3/synergy/landing_time_calculation+strategy_attempt_sequence-0": {
+      "branch": "gen-3/synergy/landing_time_calculation+strategy_attempt_sequence-0",
+      "generation": 3,
+      "target_id": "landing_time_calculation+strategy_attempt_sequence",
+      "operation": "synergy",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0",
+        "gen-0/strategy_attempt_sequence/crossover-0"
+      ],
+      "fitness": [
+        0.128816
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "score: 0.128816, dev_score: 0.105047, test_score: 0.145207",
+      "timestamp": 1773987901.8851433
+    },
+    "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0": {
+      "branch": "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0",
+      "generation": 3,
+      "target_id": "strategy_attempt_sequence",
+      "operation": "synergy",
+      "parent_branches": [
+        "gen-0/plane_ordering/mutate-0",
+        "gen-0/strategy_attempt_sequence/crossover-0"
+      ],
+      "fitness": [
+        0.821868
+      ],
+      "pareto_rank": 1,
+      "success": true,
+      "code_hash": "",
+      "raw_output": "====== Normalized Score ======\nscore      : 0.817071\ndev_score  : 0.810115\ntest_score : 0.821868",
+      "timestamp": 1773988126.8642385
+    }
+  },
+  "active_branches": {
+    "plane_ordering": [
+      "gen-0/plane_ordering/mutate-0",
+      "gen-0/plane_ordering/crossover-0",
+      "gen-3/plane_ordering/crossover-0",
+      "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0",
+      "gen-2/plane_ordering/crossover-0"
+    ],
+    "runway_selection": [
+      "gen-3/runway_selection/mutate-0",
+      "gen-0/runway_selection/mutate-0",
+      "gen-0/runway_selection/crossover-0",
+      "gen-2/runway_selection/crossover-0",
+      "gen-1/runway_selection/mutate-0"
+    ],
+    "landing_time_calculation": [
+      "gen-1/landing_time_calculation/crossover-0",
+      "gen-2/landing_time_calculation/structural-0",
+      "gen-2/landing_time_calculation/crossover-0",
+      "gen-2/landing_time_calculation/mutate-0",
+      "gen-3/landing_time_calculation/crossover-0"
+    ],
+    "strategy_attempt_sequence": [
+      "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0",
+      "gen-3/strategy_attempt_sequence/crossover-0",
+      "gen-0/strategy_attempt_sequence/crossover-0",
+      "gen-2/strategy_attempt_sequence/mutate-0",
+      "gen-1/strategy_attempt_sequence/crossover-0"
+    ],
+    "landing_time_calculation+strategy_attempt_sequence": [
+      "gen-3/synergy/landing_time_calculation+strategy_attempt_sequence-0"
+    ]
+  },
+  "fitness_cache": {
+    "d6d077d01c6b650f37b1d6afde4e94fe31ebe461cd7431fc6acba4975cbdd5c1": [
+      0.349665
+    ],
+    "26a732322881c8d51bd9fc8d6bd1eaea6f86566f8bd14b57f880625bf17ff10b": [
+      0.349665
+    ],
+    "fc2afa9d6dfe26894a582e57ded0f1e16fd32607": [
+      0.349665
+    ],
+    "7f65d5394155eb388be93ac813587ae3c8b901ca": [
+      0.146797
+    ],
+    "01cd7a2fb638b647c8b42cc067be0e8a039925066152d88701c825c3c0c358a4": [
+      0.153836
+    ],
+    "6ff226a46ec54b0494ffc11b2aadfd3c6ae155507805d329d413feb4969fbaa2": [
+      0.821868
+    ],
+    "62f89d678c331347290050ca8d7925567a316226cf2e76cfeea12cbafd6c5cfb": [
+      0.128816
+    ],
+    "01e7064b66b73b720cf1652acff4d03c9afb551c": [
+      0.817071
+    ],
+    "28919edbe47585a8daa974df6a9f919862ac8fc1eb1003083466c6163fe03a42": [
+      0.817071
+    ],
+    "9bb63fc4a6d762b2b22ec9d58401f8eb13f3f8e5": [
+      0.128816
+    ],
+    "d0006c2785906eb5b3b88a37fbf89c09d131da78": [
+      0.817071
+    ],
+    "032efe4": [
+      0.817071
+    ],
+    "D9069D9592589299D1D008F60D785BF3DB7E411C69D437EEFE90981D500EF36F": [
+      0.821868
+    ],
+    "2bd95aa77253beb416e7e7a39ff74366b0b66d1e": [
+      0.128816
+    ],
+    "901d773": [
+      0.143103
+    ],
+    "DEE48AD2F28080A3241226633D3FD35339BF3023CDBBD7947CE844A3E9081F13": [
+      0.817071
+    ],
+    "83826173631a233d": [
+      0.544681
+    ],
+    "f07072ae261abb6b8266a4366a3dde59a2c815a8": [
+      0.383903
+    ],
+    "f30ae38": [
+      0.128816
+    ],
+    "396cb54": [
+      0.817071
+    ]
+  },
+  "synergy_records": [
+    {
+      "branch": "gen-3/synergy/plane_ordering+runway_selection-0",
+      "generation": 3,
+      "target_ids": [
+        "plane_ordering",
+        "runway_selection"
+      ],
+      "fitness_values": [
+        0.128816
+      ],
+      "success": true,
+      "individual_fitnesses": {
+        "gen-0/plane_ordering/mutate-0": [
+          0.821868
+        ],
+        "gen-0/runway_selection/mutate-0": [
+          0.349665
+        ]
+      },
+      "synergy_gain": {
+        "score": -0.693052
+      }
+    },
+    {
+      "branch": "gen-3/synergy/runway_selection+landing_time_calculation-0",
+      "generation": 3,
+      "target_ids": [
+        "runway_selection",
+        "landing_time_calculation"
+      ],
+      "fitness_values": [
+        0.817071
+      ],
+      "success": true,
+      "individual_fitnesses": {
+        "runway_selection": [
+          0.349665
+        ],
+        "landing_time_calculation": [
+          0.817071
+        ]
+      },
+      "synergy_gain": {
+        "score": 0.0
+      }
+    },
+    {
+      "branch": "gen-3/synergy/runway_selection+strategy_attempt_sequence-0",
+      "generation": 3,
+      "target_ids": [
+        "runway_selection",
+        "strategy_attempt_sequence"
+      ],
+      "fitness_values": [
+        0.128816
+      ],
+      "success": true,
+      "individual_fitnesses": {},
+      "synergy_gain": null
+    }
+  ],
+  "current_batch": [
+    {
+      "branch": "gen-4/plane_ordering/crossover-0",
+      "operation": "crossover",
+      "target_id": "plane_ordering",
+      "parent_branches": [
+        "gen-0/plane_ordering/mutate-0",
+        "gen-0/plane_ordering/crossover-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Determines the order in which planes are assigned landing times. Currently uses 4 different sorting strategies: 'latest' (by latest time), 'target' (by target time), 'slack' (by time window flexibility), and 'earliest' (by earliest time). Each strategy sorts by multiple keys to break ties.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/plane_ordering/mutate-0",
+      "operation": "mutate",
+      "target_id": "plane_ordering",
+      "parent_branches": [
+        "gen-0/plane_ordering/mutate-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Determines the order in which planes are assigned landing times. Currently uses 4 different sorting strategies: 'latest' (by latest time), 'target' (by target time), 'slack' (by time window flexibility), and 'earliest' (by earliest time). Each strategy sorts by multiple keys to break ties.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/runway_selection/crossover-0",
+      "operation": "crossover",
+      "target_id": "runway_selection",
+      "parent_branches": [
+        "gen-3/runway_selection/mutate-0",
+        "gen-2/runway_selection/crossover-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Chooses which runway to assign each plane to. Currently uses 2 strategies: 'min_lb' (minimizes lower bound time) and 'min_penalty' (minimizes landing penalty). Candidates are sorted and the best runway is selected.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/runway_selection/mutate-0",
+      "operation": "mutate",
+      "target_id": "runway_selection",
+      "parent_branches": [
+        "gen-3/runway_selection/mutate-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Chooses which runway to assign each plane to. Currently uses 2 strategies: 'min_lb' (minimizes lower bound time) and 'min_penalty' (minimizes landing penalty). Candidates are sorted and the best runway is selected.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/landing_time_calculation/structural-0",
+      "operation": "structural",
+      "target_id": "landing_time_calculation",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Calculates the actual landing time for a plane on a chosen runway. Currently uses 2 modes: 'lb' (lands at lower bound) and 'target_clip' (lands at target time clipped to feasible range). The lower bound is determined by separation constraints from previous landings.",
+      "target_hint": "",
+      "structural_op": "decouple"
+    },
+    {
+      "branch": "gen-4/landing_time_calculation/crossover-0",
+      "operation": "crossover",
+      "target_id": "landing_time_calculation",
+      "parent_branches": [
+        "gen-2/landing_time_calculation/structural-0",
+        "gen-2/landing_time_calculation/mutate-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Calculates the actual landing time for a plane on a chosen runway. Currently uses 2 modes: 'lb' (lands at lower bound) and 'target_clip' (lands at target time clipped to feasible range). The lower bound is determined by separation constraints from previous landings.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/landing_time_calculation/mutate-0",
+      "operation": "mutate",
+      "target_id": "landing_time_calculation",
+      "parent_branches": [
+        "gen-1/landing_time_calculation/crossover-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Calculates the actual landing time for a plane on a chosen runway. Currently uses 2 modes: 'lb' (lands at lower bound) and 'target_clip' (lands at target time clipped to feasible range). The lower bound is determined by separation constraints from previous landings.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/strategy_attempt_sequence/crossover-0",
+      "operation": "crossover",
+      "target_id": "strategy_attempt_sequence",
+      "parent_branches": [
+        "gen-3/strategy_attempt_sequence/crossover-0",
+        "gen-0/strategy_attempt_sequence/crossover-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Defines the sequence of 5 strategy combinations to try: (latest,min_lb,lb), (slack,min_lb,lb), (target,min_lb,lb), (target,min_penalty,target_clip), (earliest,min_lb,lb). Returns the first valid complete schedule found.",
+      "target_hint": "",
+      "structural_op": ""
+    },
+    {
+      "branch": "gen-4/strategy_attempt_sequence/mutate-0",
+      "operation": "mutate",
+      "target_id": "strategy_attempt_sequence",
+      "parent_branches": [
+        "gen-3/synergy/plane_ordering+strategy_attempt_sequence-0"
+      ],
+      "target_file": "evo_func.py",
+      "target_function": "solve",
+      "target_description": "Defines the sequence of 5 strategy combinations to try: (latest,min_lb,lb), (slack,min_lb,lb), (target,min_lb,lb), (target,min_penalty,target_clip), (earliest,min_lb,lb). Returns the first valid complete schedule found.",
+      "target_hint": "",
+      "structural_op": ""
+    }
+  ],
+  "batch_cursor": 0
+}
