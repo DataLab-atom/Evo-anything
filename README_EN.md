@@ -358,3 +358,10 @@ gen-{N}/synergy/{targetA}+{targetB}-{V}  # cross-target combination
 ```
 
 Tags: `seed-baseline`, `best-gen-{N}`, `best-overall`
+
+## Acknowledgements
+
+our work is built upon the following projects, among others:
+
+- [Evolution of Heuristics: Towards Efficient Automatic Algorithm Design using Large Language Model](https://github.com/FeiLiu36/EoH)
+- [LLM4AD: Large Language Model for Algorithm Design](https://github.com/Optima-CityU/LLM4AD)
