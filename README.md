@@ -7,7 +7,7 @@
 
 [![文档](https://img.shields.io/badge/文档-中文版-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/README.md)
 [![document](https://img.shields.io/badge/document-English-blue.svg)]([#](https://github.com/DataLab-atom/Evo-anything/blob/main/README_EN.md))
-[![License](https://img.shields.io/badge/License-Apache-blue.svg)](#)
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/LICENSE)
 
 </div>
 
