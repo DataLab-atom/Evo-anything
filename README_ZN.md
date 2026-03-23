@@ -5,9 +5,9 @@
 # EvoClaw Plugin — Git-Based Evolutionary Code Optimizer
 <div align="center">
 
-[![文档](https://img.shields.io/badge/文档-中文版-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/README_ZN.md)
-[![document](https://img.shields.io/badge/document-English-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/README.md)
-[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/LICENSE)
+[![文档](https://img.shields.io/badge/文档-中文版-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/README_ZN.md)
+[![document](https://img.shields.io/badge/document-English-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/README.md)
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/LICENSE)
 
 </div>
 
@@ -72,8 +72,8 @@ npx evo-anything setup --platform openclaw
 无论使用哪个平台，都需要先安装 MCP server：
 
 ```bash
-git clone https://github.com/DataLab-atom/Evo-anything.git
-cd Evo-anything
+git clone https://github.com/DataLab-atom/EvoClaw.git
+cd EvoClaw
 npm install && npm run build
 ```
 
