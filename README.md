@@ -80,13 +80,14 @@ npm install && npm run build
 ### OpenClaw
 
 <details>
-<summary>CLI one-liner (recommended)</summary>
+<summary>Recommended install</summary>
 
 ```bash
-openclaw plugins install evo-anything
+npx evo-anything setup
 openclaw gateway restart
-openclaw plugins doctor   # verify
 ```
+
+`setup` installs the plugin into `~/.openclaw/extensions/evo-anything`, enables it in `plugins.allow` and `plugins.entries`, registers bundled skills, and adds `"evo-anything"` to `tools.alsoAllow` so `evo_*` tools appear in agent tool tables.
 
 </details>
 
@@ -94,30 +95,40 @@ openclaw plugins doctor   # verify
 <summary>Local development mode</summary>
 
 ```bash
-openclaw plugins install -l ./plugin
+npm run build
+npx evo-anything setup
 openclaw gateway restart
 ```
+
+Use this after changing `plugin/index.ts`, `plugin/server.ts`, or any other code that affects `dist/`.
 
 </details>
 
 <details>
 <summary>Manual install</summary>
 
-Copy the plugin to the extensions directory and register it in `~/.openclaw/openclaw.json`:
+Copy the built plugin package to the extensions directory and register it in `~/.openclaw/openclaw.json`:
 
 ```bash
-cp -r plugin/ ~/.openclaw/extensions/evo-anything/
+mkdir -p ~/.openclaw/extensions/evo-anything
+cp -r dist ~/.openclaw/extensions/evo-anything/
+cp -r plugin ~/.openclaw/extensions/evo-anything/
+cp openclaw.plugin.json package.json ~/.openclaw/extensions/evo-anything/
 ```
 
 ```json
 {
   "plugins": {
+    "allow": ["evo-anything"],
     "entries": {
       "evo-anything": {
         "enabled": true,
         "config": {}
       }
     }
+  },
+  "tools": {
+    "alsoAllow": ["evo-anything"]
   },
   "mcpServers": {
     "evo-engine": {
@@ -135,7 +146,15 @@ openclaw gateway restart
 
 </details>
 
-**Verify:** Type `/status` in a conversation. Seeing "Evolution not initialized" means the install succeeded.
+`plugins.allow` controls whether OpenClaw loads the plugin. `tools.alsoAllow` controls whether the plugin's native tools are exposed to coding-profile agents.
+
+**Verify:**
+
+```bash
+openclaw plugins info evo-anything
+```
+
+Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
 
 ---
 

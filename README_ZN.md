@@ -82,13 +82,14 @@ npm install && npm run build
 ### OpenClaw
 
 <details>
-<summary>CLI 一键安装（推荐）</summary>
+<summary>推荐安装方式</summary>
 
 ```bash
-openclaw plugins install evo-anything
+npx evo-anything setup
 openclaw gateway restart
-openclaw plugins doctor   # 验证
 ```
+
+`setup` 会自动把插件复制到 `~/.openclaw/extensions/evo-anything`，并在 `plugins.allow`、`plugins.entries` 中启用插件，注册自带 skills，同时把 `"evo-anything"` 写入 `tools.alsoAllow`，确保 `evo_*` 工具真正出现在 agent 的工具表里。
 
 </details>
 
@@ -96,30 +97,40 @@ openclaw plugins doctor   # 验证
 <summary>本地开发模式</summary>
 
 ```bash
-openclaw plugins install -l ./plugin
+npm run build
+npx evo-anything setup
 openclaw gateway restart
 ```
+
+修改了 `plugin/index.ts`、`plugin/server.ts` 或任何会影响 `dist/` 的代码后，都应该走这套流程重新安装。
 
 </details>
 
 <details>
 <summary>手动安装</summary>
 
-将插件复制到扩展目录，并在 `~/.openclaw/openclaw.json` 中注册：
+将已构建好的插件包复制到扩展目录，并在 `~/.openclaw/openclaw.json` 中注册：
 
 ```bash
-cp -r plugin/ ~/.openclaw/extensions/evo-anything/
+mkdir -p ~/.openclaw/extensions/evo-anything
+cp -r dist ~/.openclaw/extensions/evo-anything/
+cp -r plugin ~/.openclaw/extensions/evo-anything/
+cp openclaw.plugin.json package.json ~/.openclaw/extensions/evo-anything/
 ```
 
 ```json
 {
   "plugins": {
+    "allow": ["evo-anything"],
     "entries": {
       "evo-anything": {
         "enabled": true,
         "config": {}
       }
     }
+  },
+  "tools": {
+    "alsoAllow": ["evo-anything"]
   },
   "mcpServers": {
     "evo-engine": {
@@ -137,7 +148,15 @@ openclaw gateway restart
 
 </details>
 
-**验证：** 对话中输入 `/status`，看到 "Evolution not initialized" 即安装成功。
+`plugins.allow` 决定 OpenClaw 是否加载这个插件；`tools.alsoAllow` 决定插件注册的原生工具是否会暴露给 coding-profile agent。
+
+**验证：**
+
+```bash
+openclaw plugins info evo-anything
+```
+
+然后新开一个 agent 会话，确认 `evo_init`、`evo_get_status` 之类的工具已经可用。
 
 ---
 
