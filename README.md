@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./images/image.png" alt="Evo-anything Logo" width="220" />
+  <img src="./images/image.png" alt="EvoClaw Logo" width="220" />
 </p>
 
 # Evo-anything Plugin — Git-Based Evolutionary Code Optimizer
