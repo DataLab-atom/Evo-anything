@@ -296,6 +296,10 @@ Every experiment is tracked as a git branch. The evolution loop has six stages:
 
 The best result of each generation is tagged (`best-gen-{N}`), and the final `best-overall` branch is pushed.
 
+LLM4AD is one of our key prior works. It systematized the use of large language models for automatic algorithm design by providing a research platform with unified method interfaces, benchmark tasks, and evaluation workflows. Building on that foundation, EvoClaw extends the idea beyond a task-oriented research platform into an engineering-oriented automated evolution system for arbitrary git repositories.
+
+The main advantage of EvoClaw is its higher degree of automation and more natural interaction model. While previous workflows often required manually adapting task code and wiring evaluation pipelines, EvoClaw allows users to specify goals in natural language and then automatically handles repository discovery, environment setup, benchmark integration, target identification, code variant generation, evaluation, selection, and result tracking, turning LLM-based algorithm and code optimization into a fully automated closed loop.
+
 ### Comparison with Prior Work
 
 | Method | Template Required | Optimization Scope | Structural Evolution |
