@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./images/image.png" alt="EvoClaw Logo" width="220" />
+  <img src="./images/image.png" alt="Evo-anything Logo" width="220" />
 </p>
 
 # Evo-anything Plugin — Git-Based Evolutionary Code Optimizer
@@ -13,50 +13,50 @@
 
 ![Demo Framework Diagram](./images/system_overview.png)
 
-Evo-anything 是基于论文 **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"**（arXiv:2503.10721）的工程实现。它通过 LLM 驱动的**结构-功能协同演化**，在任意 git 仓库上自动演化代码，追求更优的 benchmark 表现。
+Evo-anything is the engineering implementation of **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"** (arXiv:2503.10721). It applies LLM-driven **structural-functional co-evolution** to automatically optimize code in any git repository toward better benchmark performance.
 
-> **论文引用：** Zhe Zhao, Haibin Wen, Pengkun Wang, Ye Wei, Zaixi Zhang, Xi Lin, Fei Liu, Bo An, Hui Xiong, Yang Wang, Qingfu Zhang. *From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution.* arXiv:2503.10721 [cs.SE], 2025.
+> **Paper:** Zhe Zhao, Haibin Wen, Pengkun Wang, Ye Wei, Zaixi Zhang, Xi Lin, Fei Liu, Bo An, Hui Xiong, Yang Wang, Qingfu Zhang. *From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution.* arXiv:2503.10721 [cs.SE], 2025.
 
 ## Demo Example
 <div align="center">
-  
-https://github.com/user-attachments/assets/ffe7deb0-ce0c-4bfb-8423-d0067c7fe356
+
+https://github.com/user-attachments/assets/94b63348-de0d-4602-a2ce-3e73740656e2
 
 </div>
 
-## 安装
+## Installation
 
-### 前置条件
+### Prerequisites
 
-**必需：**
+**Required:**
 - Node.js >= 16
 - Git
-- GitHub CLI (`gh`) — 用于 `/hunt` 搜索仓库和自动开 PR
+- GitHub CLI (`gh`) — required for `/hunt` to search repositories and open PRs
 
-**可选（安装后自动启用增强能力）：**
-- `oracle` CLI — MapAgent 整仓库上下文分析（`npm install -g oracle`）
-- `claude` CLI — WorkerAgent 复杂变体生成，用 Claude Code 代替直接 edit
-- `codex` CLI — WorkerAgent 复杂变体生成的备选
-- `lobster` CLI — 原子化 setup 工作流 + PR approval gate
-- `tmux` — 长时间 benchmark 非阻塞后台执行
-- `pyflakes` — 变体提交前 import/name 静态检查（`npm install -g pyflakes` 或 `pipx install pyflakes`）
-- OpenClaw skills: `oracle`、`arxiv-watcher`、`summarize`、`session-logs`（通过 `clawhub install <slug>` 安装）
+**Optional (automatically enabled when installed):**
+- `oracle` CLI — MapAgent whole-repo context analysis (`npm install -g oracle`)
+- `claude` CLI — WorkerAgent complex variant generation using Claude Code instead of direct edits
+- `codex` CLI — alternative for WorkerAgent complex variant generation
+- `lobster` CLI — atomic setup workflows + PR approval gate
+- `tmux` — non-blocking background execution for long benchmarks
+- `pyflakes` — static import/name checks before committing variants (`npm install -g pyflakes` or `pipx install pyflakes`)
+- OpenClaw skills: `oracle`, `arxiv-watcher`, `summarize`, `session-logs` (install via `clawhub install <slug>`)
 
-### 方式一：npm 一键安装（推荐）
+### Option 1: npm (recommended)
 
 ```bash
 npm install -g evo-anything
 ```
 
-安装过程中会自动验证依赖并完成 MCP server 的配置。
+This automatically verifies dependencies and configures the MCP server during the npm postinstall step.
 
-安装完成后，运行 setup 配置你的 AI IDE：
+After installation, configure your AI IDE:
 
 ```bash
-# 配置所有支持的平台（Claude Code、Cursor、Windsurf、OpenClaw）
+# Configure all supported platforms (Claude Code, Cursor, Windsurf, OpenClaw)
 npx evo-anything setup
 
-# 或只配置指定平台
+# Or configure a specific platform
 npx evo-anything setup --platform claude
 npx evo-anything setup --platform cursor
 npx evo-anything setup --platform windsurf
@@ -65,11 +65,9 @@ npx evo-anything setup --platform openclaw
 
 ---
 
-### 方式二：手动安装
+### Option 2: Manual
 
-#### 通用步骤：安装 evo-engine
-
-无论使用哪个平台，都需要先安装 MCP server：
+#### Step 1: Install evo-engine (required for all platforms)
 
 ```bash
 git clone https://github.com/DataLab-atom/Evo-anything.git
@@ -82,18 +80,18 @@ npm install && npm run build
 ### OpenClaw
 
 <details>
-<summary>CLI 一键安装（推荐）</summary>
+<summary>CLI one-liner (recommended)</summary>
 
 ```bash
 openclaw plugins install evo-anything
 openclaw gateway restart
-openclaw plugins doctor   # 验证
+openclaw plugins doctor   # verify
 ```
 
 </details>
 
 <details>
-<summary>本地开发模式</summary>
+<summary>Local development mode</summary>
 
 ```bash
 openclaw plugins install -l ./plugin
@@ -103,9 +101,9 @@ openclaw gateway restart
 </details>
 
 <details>
-<summary>手动安装</summary>
+<summary>Manual install</summary>
 
-将插件复制到扩展目录，并在 `~/.openclaw/openclaw.json` 中注册：
+Copy the plugin to the extensions directory and register it in `~/.openclaw/openclaw.json`:
 
 ```bash
 cp -r plugin/ ~/.openclaw/extensions/evo-anything/
@@ -137,13 +135,13 @@ openclaw gateway restart
 
 </details>
 
-**验证：** 对话中输入 `/status`，看到 "Evolution not initialized" 即安装成功。
+**Verify:** Type `/status` in a conversation. Seeing "Evolution not initialized" means the install succeeded.
 
 ---
 
 ### Claude Code
 
-在项目根目录或全局 `.claude/settings.json` 中添加 MCP server：
+Add the MCP server to your project root or global `.claude/settings.json`:
 
 ```json
 {
@@ -156,19 +154,19 @@ openclaw gateway restart
 }
 ```
 
-将 skills 链接到 Claude Code：
+Link skills to Claude Code:
 
 ```bash
 ln -s $(pwd)/plugin/skills/* ~/.claude/skills/
 ```
 
-重启 Claude Code 即可使用。
+Restart Claude Code and you're ready.
 
 ---
 
 ### Cursor
 
-在项目根目录的 `.cursor/mcp.json` 中添加：
+Add to `.cursor/mcp.json` in your project root:
 
 ```json
 {
@@ -181,7 +179,7 @@ ln -s $(pwd)/plugin/skills/* ~/.claude/skills/
 }
 ```
 
-Cursor 会自动发现 MCP tools（`evo_init`、`evo_next_batch` 等）。Skills 需要作为 Cursor Rules 手动导入：
+Cursor will auto-discover MCP tools (`evo_init`, `evo_next_batch`, etc.). Import skills as Cursor Rules manually:
 
 ```bash
 cp plugin/AGENTS.md .cursor/rules/evo-agents.md
@@ -191,7 +189,7 @@ cp plugin/AGENTS.md .cursor/rules/evo-agents.md
 
 ### Windsurf
 
-在全局 `~/.codeium/windsurf/mcp_config.json` 中添加：
+Add to `~/.codeium/windsurf/mcp_config.json`:
 
 ```json
 {
@@ -206,28 +204,28 @@ cp plugin/AGENTS.md .cursor/rules/evo-agents.md
 
 ---
 
-### 其它 MCP 兼容客户端
+### Any Other MCP-Compatible Client
 
-Evo-anything 的核心是一个标准 [MCP](https://modelcontextprotocol.io) server。任何支持 MCP stdio 传输的客户端都可以接入：
+Evo-anything's core is a standard [MCP](https://modelcontextprotocol.io) server. Any client that supports MCP stdio transport can connect:
 
 ```bash
-# 直接启动 server（stdio 模式）
+# Start the server directly (stdio mode)
 evo-engine
 ```
 
-提供的 MCP tools：`evo_init`、`evo_register_targets`、`evo_report_seed`、`evo_step`、`evo_next_batch`、`evo_report_fitness`、`evo_select_survivors`、`evo_get_status`、`evo_get_lineage`、`evo_freeze_target`、`evo_boost_target`、`evo_record_synergy`、`evo_check_cache`。
+Available MCP tools: `evo_init`, `evo_register_targets`, `evo_report_seed`, `evo_step`, `evo_next_batch`, `evo_report_fitness`, `evo_select_survivors`, `evo_revalidate_targets`, `evo_get_status`, `evo_get_lineage`, `evo_freeze_target`, `evo_boost_target`, `evo_record_synergy`, `evo_check_cache`.
 
 ---
 
-### 可选配置
+### Optional Configuration
 
-演化状态默认存储在 `~/.openclaw/u2e-state/`，可通过环境变量自定义（`U2E` 即论文名 *Understanding to Excelling* 缩写）：
+Evolution state is stored in `~/.openclaw/u2e-state/` by default. Override with an environment variable (`U2E` stands for *Understanding to Excelling*, the paper's acronym):
 
 ```bash
 export U2E_STATE_DIR=/path/to/your/state
 ```
 
-或在 OpenClaw 中通过 `openclaw.json` 配置：
+Or configure via `openclaw.json`:
 
 ```json
 {
@@ -247,122 +245,123 @@ export U2E_STATE_DIR=/path/to/your/state
 ## Quick Start
 
 ```
-你在 Telegram 发：我要 CIFAR-100-LT 上 SOTA
+You send: I want SOTA on CIFAR-100-LT
          ↓
-  /hunt 自动触发
+  /hunt triggers automatically
          ↓
-  搜 GitHub → 找到 3 个候选 → 问你选哪个
+  Searches GitHub → finds 3 candidates → asks which one
          ↓
-  你说：用第 1 个
+  You say: use #1
          ↓
-  clone → 安装依赖 → 下载数据 → 跑基线确认能跑
+  clone → install deps → download data → run baseline to confirm it works
          ↓
-  自动调用 /evolve → 进化循环
+  Automatically calls /evolve → evolution loop begins
          ↓
-  每代给你发进度
+  Progress report after each generation
          ↓
-  结束后推最优分支 + 发报告
+  Pushes best branch + sends final report when done
 ```
 
-## 工作原理
+## How It Works
 
-Evo-anything 实现了论文提出的 **U2E（Understanding to Excelling）协议**——一种无模板的两维协同演化框架，区别于 EoH、FunSearch 等依赖预定义模板、仅做局部函数优化的方法，U2E 同时在**功能维**（算法逻辑）和**结构维**（代码架构）上做全局联合优化。
+Evo-anything implements the **U2E (Understanding to Excelling) protocol** proposed in the paper — a template-free, two-dimensional co-evolution framework. Unlike EoH and FunSearch, which rely on predefined templates and optimize only local key functions, U2E performs global joint optimization across both the **functional dimension** (algorithm logic) and the **structural dimension** (code architecture).
 
-所有实验以 git 分支记录，演化循环包含六个阶段：
+Every experiment is tracked as a git branch. The evolution loop has six stages:
 
-1. **分析** — 自动识别关键算法模块（哪些代码值得优化）
-2. **规划** — 决定变异/交叉策略和每轮变体数量，按温度自适应分配预算
-3. **生成** — LLM 生成代码变体（变异：单亲改进；交叉：双亲融合）
-4. **评估** — 在隔离的 git worktree 中运行 benchmark
-5. **选择** — 保留最优，淘汰其余；每 N 代做跨目标协同（Synergy）检验
-6. **反思** — 提取经验教训，写入结构化记忆，指导后续演化
+1. **Analysis** — automatically identify key algorithm modules worth optimizing
+2. **Planning** — decide mutation/crossover strategy and variant counts; adaptively allocate budget by temperature per target
+3. **Generation** — LLM generates code variants (mutation: single-parent refinement; crossover: two-parent combination)
+4. **Evaluation** — run benchmarks in isolated git worktrees
+5. **Selection** — keep the best, discard the rest; run cross-target Synergy checks every N generations
+6. **Reflection** — extract lessons into structured memory to guide future evolution
 
-每一代的最优结果打 tag（`best-gen-{N}`），最终推送 `best-overall` 分支。
+The best result of each generation is tagged (`best-gen-{N}`), and the final `best-overall` branch is pushed.
 
-### 与现有方法对比
+### Comparison with Prior Work
 
-| 方法 | 模板依赖 | 优化范围 | 结构演化 |
-|------|---------|---------|---------|
-| EoH / FunSearch | 需要预定义模板 | 局部函数 | 无 |
-| **Evo-anything (U2E)** | **无需模板** | **全局多目标** | **功能 + 结构协同** |
+| Method | Template Required | Optimization Scope | Structural Evolution |
+|--------|------------------|--------------------|----------------------|
+| EoH / FunSearch | Yes (predefined) | Local functions | No |
+| **Evo-anything (U2E)** | **No** | **Global multi-target** | **Functional + Structural co-evolution** |
 
 ## Skills
 
-| 命令 | 说明 |
-|------|------|
-| `/hunt <任务描述>` | 搜索 GitHub 找到合适的仓库，自动 clone、安装、跑基线，然后启动演化 |
-| `/evolve <repo> <benchmark_cmd>` | 对指定仓库启动演化优化循环 |
-| `/status` | 查看当前演化进度 |
-| `/report` | 生成完整的演化报告 |
-| `/boost <target_id>` | 提升某个优化目标的优先级 |
-| `/freeze <target_id>` | 冻结某个目标，停止对它的演化 |
+| Command | Description |
+|---------|-------------|
+| `/hunt <task description>` | Search GitHub for a suitable repo, auto clone/install/baseline, then start evolution |
+| `/evolve <repo> <benchmark_cmd>` | Start an evolutionary optimization loop on a given repo |
+| `/status` | Check current evolution progress |
+| `/report` | Generate a full evolution report |
+| `/boost <target_id>` | Increase the priority of an optimization target |
+| `/freeze <target_id>` | Freeze a target, stopping evolution on it |
 
-## 目录结构
+## Repository Structure
 
 ```
 Evo-anything/
 ├── LICENSE
 ├── README.md
-├── research/                  # 生态调研文档
+├── README_EN.md
+├── research/                  # ecosystem research docs
 │   ├── 01_openclaw_existing_capabilities.md
 │   ├── 02_compatible_products_capabilities.md
 │   ├── 03_evo_anything_analysis.md
-│   └── 04_ecosystem_capability_map.md  # 生态能力全景图
+│   └── 04_ecosystem_capability_map.md  # full ecosystem capability map
 └── plugin/
-    ├── openclaw.plugin.json   # 插件定义
-    ├── AGENTS.md              # 演化协议（核心循环）
-    ├── SOUL.md                # Agent 人格设定
-    ├── TOOLS.md               # 工具使用约定
-    ├── agents/                # 各 Agent 行为说明
-    │   ├── orchestrator.md    # OrchestratorAgent（含 canvas 可视化）
-    │   ├── worker.md          # WorkerAgent（含静态检查、tmux、coding-agent）
+    ├── openclaw.plugin.json   # plugin definition
+    ├── AGENTS.md              # evolution protocol (core loop)
+    ├── SOUL.md                # agent persona
+    ├── TOOLS.md               # tool usage conventions
+    ├── agents/                # per-agent behavior specs
+    │   ├── orchestrator.md    # OrchestratorAgent (with canvas dashboard)
+    │   ├── worker.md          # WorkerAgent (with static checks, tmux, coding-agent)
     │   ├── policy_agent.md    # PolicyAgent
-    │   ├── reflect_agent.md   # ReflectAgent（含跨-run 元学习）
-    │   └── map_agent.md       # MapAgent（含 oracle 整仓库分析）
-    ├── server.ts              # MCP 工具接口（演化引擎）
-    ├── index.ts               # 插件入口
-    ├── src/                   # 核心逻辑
-    │   ├── models.ts          # 数据模型
-    │   ├── selection.ts       # 选择算法
-    │   └── state.ts           # 状态管理
-    ├── skills/                # 用户可调用的技能
-    │   ├── hunt/              # 搜索并部署代码库（含 arxiv-watcher）
-    │   ├── evolve/            # 启动演化循环（含 lobster 工作流）
-    │   ├── status/            # 查看进度
-    │   ├── report/            # 生成报告
-    │   ├── boost/             # 提升目标优先级
-    │   └── freeze/            # 冻结目标
-    └── workflows/             # Lobster 声明式工作流
-        ├── evo-setup.lobster  # 原子化 setup（validate→baseline→tag→mkdir）
-        └── evo-finish.lobster # 结束流程（tag→push→approval gate→PR）
+    │   ├── reflect_agent.md   # ReflectAgent (with cross-run meta-learning)
+    │   └── map_agent.md       # MapAgent (with oracle whole-repo analysis)
+    ├── server.ts              # MCP tool interface (evolution engine)
+    ├── index.ts               # plugin entry point
+    ├── src/                   # core logic
+    │   ├── models.ts          # data models
+    │   ├── selection.ts       # selection algorithms
+    │   └── state.ts           # state management
+    ├── skills/                # user-invocable skills
+    │   ├── hunt/              # search and deploy a codebase (with arxiv-watcher)
+    │   ├── evolve/            # start evolution loop (with lobster workflows)
+    │   ├── status/            # check progress
+    │   ├── report/            # generate report
+    │   ├── boost/             # boost target priority
+    │   └── freeze/            # freeze a target
+    └── workflows/             # Lobster declarative workflows
+        ├── evo-setup.lobster  # atomic setup (validate→baseline→tag→mkdir)
+        └── evo-finish.lobster # finish flow (tag→push→approval gate→PR)
 ```
 
-## 演化记忆
+## Evolution Memory
 
-Evo-anything 在目标仓库中维护结构化记忆，避免重复失败的尝试：
+Evo-anything maintains structured memory in the target repository to avoid repeating failed attempts:
 
 ```
 memory/
-├── global/long_term.md           # 跨目标的通用经验
+├── global/long_term.md           — cross-target lessons
 ├── targets/{id}/
-│   ├── short_term/gen_{N}.md     # 每代反思
-│   ├── long_term.md              # 该目标的累积智慧
-│   └── failures.md               # 失败记录（不要再试的方向）
-└── synergy/records.md            # 跨函数组合实验结果
+│   ├── short_term/gen_{N}.md     — per-generation reflection
+│   ├── long_term.md              — accumulated wisdom for this target
+│   └── failures.md               — what NOT to try again
+└── synergy/records.md            — cross-function combination results
 ```
 
-## 分支命名
+## Branch Naming
 
 ```
-gen-{N}/{target_id}/{op}-{V}          # 单目标变体
-gen-{N}/synergy/{targetA}+{targetB}-{V}  # 跨目标组合
+gen-{N}/{target_id}/{op}-{V}             # single-target variant
+gen-{N}/synergy/{targetA}+{targetB}-{V}  # cross-target combination
 ```
 
 Tags: `seed-baseline`, `best-gen-{N}`, `best-overall`
 
-## 致谢
+## Acknowledgements
 
-我们的工作参考了以下项目（仅列举部分）:
+The following is a non-exhaustive list of projects that informed our work:
 
 - [Evolution of Heuristics: Towards Efficient Automatic Algorithm Design using Large Language Model](https://github.com/FeiLiu36/EoH)
 - [LLM4AD: Large Language Model for Algorithm Design](https://github.com/Optima-CityU/LLM4AD)
