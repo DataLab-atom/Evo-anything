@@ -3,17 +3,26 @@
 </p>
 
 # Evo-anything Plugin — Git-Based Evolutionary Code Optimizer
+<div align="center">
 
-[![Demo Framework Diagram](./images/system_overview.png)](<./images/system_overview%20(1).pdf>)
+[![文档](https://img.shields.io/badge/文档-中文版-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/README.md)
+[![document](https://img.shields.io/badge/document-English-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/README_EN.md)
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/DataLab-atom/Evo-anything/blob/main/LICENSE)
+
+</div>
+
+![Demo Framework Diagram](./images/system_overview.png)
 
 Evo-anything is the engineering implementation of **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"** (arXiv:2503.10721). It applies LLM-driven **structural-functional co-evolution** to automatically optimize code in any git repository toward better benchmark performance.
 
 > **Paper:** Zhe Zhao, Haibin Wen, Pengkun Wang, Ye Wei, Zaixi Zhang, Xi Lin, Fei Liu, Bo An, Hui Xiong, Yang Wang, Qingfu Zhang. *From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution.* arXiv:2503.10721 [cs.SE], 2025.
 
 ## Demo Example
+<div align="center">
+
 https://github.com/user-attachments/assets/0f9720ca-a2bb-490b-8a2a-76244118157c
 
-
+</div>
 
 ## Installation
 
