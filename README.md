@@ -1,8 +1,20 @@
 # Evo-anything Plugin — Git-Based Evolutionary Code Optimizer
 
+<p align="center">
+  <img src="./images/image.png" alt="Evo-anything Logo" width="220" />
+</p>
+
 Evo-anything 是基于论文 **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"**（arXiv:2503.10721）的工程实现。它通过 LLM 驱动的**结构-功能协同演化**，在任意 git 仓库上自动演化代码，追求更优的 benchmark 表现。
 
 > **论文引用：** Zhe Zhao, Haibin Wen, Pengkun Wang, Ye Wei, Zaixi Zhang, Xi Lin, Fei Liu, Bo An, Hui Xiong, Yang Wang, Qingfu Zhang. *From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution.* arXiv:2503.10721 [cs.SE], 2025.
+
+## Demo Example
+
+<video src="./images/6a0e0f491d9a3575130245dddd24a2b8.mp4" controls width="900">
+  Your browser does not support the video tag.
+</video>
+
+[Demo Example](./images/6a0e0f491d9a3575130245dddd24a2b8.mp4)
 
 ## 安装
 
@@ -245,6 +257,10 @@ export U2E_STATE_DIR=/path/to/your/state
 ```
 
 ## 工作原理
+
+### 论文框架图（PDF）
+
+[Demo Framework Diagram](<./images/system_overview (1).pdf>)
 
 Evo-anything 实现了论文提出的 **U2E（Understanding to Excelling）协议**——一种无模板的两维协同演化框架，区别于 EoH、FunSearch 等依赖预定义模板、仅做局部函数优化的方法，U2E 同时在**功能维**（算法逻辑）和**结构维**（代码架构）上做全局联合优化。
 
