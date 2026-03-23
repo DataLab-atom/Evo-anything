@@ -4,6 +4,8 @@
 
 # Evo-anything Plugin — Git-Based Evolutionary Code Optimizer
 
+[![Demo Framework Diagram](./images/system_overview.png)](<./images/system_overview%20(1).pdf>)
+
 Evo-anything is the engineering implementation of **"From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution"** (arXiv:2503.10721). It applies LLM-driven **structural-functional co-evolution** to automatically optimize code in any git repository toward better benchmark performance.
 
 > **Paper:** Zhe Zhao, Haibin Wen, Pengkun Wang, Ye Wei, Zaixi Zhang, Xi Lin, Fei Liu, Bo An, Hui Xiong, Yang Wang, Qingfu Zhang. *From Understanding to Excelling: Template-Free Algorithm Design through Structural-Functional Co-Evolution.* arXiv:2503.10721 [cs.SE], 2025.
@@ -255,10 +257,6 @@ You send: I want SOTA on CIFAR-100-LT
 ```
 
 ## How It Works
-
-### Paper Framework Diagram
-
-[![Demo Framework Diagram](./images/system_overview.png)](<./images/system_overview%20(1).pdf>)
 
 Evo-anything implements the **U2E (Understanding to Excelling) protocol** proposed in the paper — a template-free, two-dimensional co-evolution framework. Unlike EoH and FunSearch, which rely on predefined templates and optimize only local key functions, U2E performs global joint optimization across both the **functional dimension** (algorithm logic) and the **structural dimension** (code architecture).
 
