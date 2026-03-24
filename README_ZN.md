@@ -27,8 +27,6 @@
 
 欢迎加入 EvoClaw 社区交流使用经验、演化案例和后续共建计划。
 
-微信群二维码稍后会补充到 `images/` 目录，建议文件名使用 `images/wechat_qr.png`，然后取消下面这段注释：
-
 <!--
 <div align="center">
   <img src="./images/wechat_qr.png" alt="EvoClaw WeChat Group QR" width="260" />
