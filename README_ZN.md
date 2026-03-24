@@ -5,7 +5,11 @@
 
 [![文档](https://img.shields.io/badge/文档-中文版-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/README_ZN.md)
 [![document](https://img.shields.io/badge/document-English-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/README.md)
-[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16-339933?logo=node.js&logoColor=white)](https://github.com/DataLab-atom/EvoClaw/blob/main/package.json)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/DataLab-atom/EvoClaw/pulls)
+[![Build Status](https://img.shields.io/badge/build-tsc%20ready-2ea44f)](https://github.com/DataLab-atom/EvoClaw/blob/main/package.json)
+[![Web](https://img.shields.io/badge/Web-GitHub-black?logo=github)](https://github.com/DataLab-atom/EvoClaw)
 
 [安装](#安装) | [平台接入](#平台接入) | [工作原理](#工作原理) | [Skills](#skills)
 </div>
