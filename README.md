@@ -85,9 +85,17 @@ npx evo-anything setup --platform openclaw
 
 ---
 
-### Option 2: Manual
+### Option 2: Build from source and connect manually
 
-#### Step 1: Install evo-engine (required for all platforms)
+Use this path when:
+
+- you want to develop or debug EvoClaw locally
+- `npx evo-anything setup` cannot update your platform configuration directly
+- you want full manual control over plugin installation and MCP wiring
+
+This path has two parts: build `evo-engine` first, then connect it to your platform.
+
+#### Step 1: Build evo-engine from source (required for all platforms)
 
 ```bash
 git clone https://github.com/DataLab-atom/EvoClaw.git
@@ -95,12 +103,14 @@ cd EvoClaw
 npm install && npm run build
 ```
 
----
+#### Step 2: Choose your integration path
 
-### OpenClaw
+If you use OpenClaw, start with the section below. If you use Claude Code, Cursor, Windsurf, or another MCP client, you can jump directly to "Platform Setup".
+
+##### OpenClaw (plugin-style integration)
 
 <details>
-<summary>Recommended install</summary>
+<summary>Recommended: install into OpenClaw automatically</summary>
 
 ```bash
 npx evo-anything setup
@@ -112,7 +122,7 @@ openclaw gateway restart
 </details>
 
 <details>
-<summary>Local development mode</summary>
+<summary>For development: rebuild and reinstall</summary>
 
 ```bash
 npm run build
@@ -125,7 +135,7 @@ Use this after changing `plugin/index.ts`, `plugin/server.ts`, or any other code
 </details>
 
 <details>
-<summary>Manual install</summary>
+<summary>Fallback: register the plugin manually</summary>
 
 Copy the built plugin package to the extensions directory and register it in `~/.openclaw/openclaw.json`:
 
@@ -179,6 +189,8 @@ Then start a fresh agent session and confirm tools such as `evo_init` or `evo_ge
 ---
 
 ## Platform Setup
+
+The platforms below all connect to the same `evo-engine` MCP server; the only difference is where each client expects its MCP configuration and how it imports skills.
 
 ### Claude Code
 
@@ -307,25 +319,35 @@ You send: I want SOTA on CIFAR-100-LT
 
 ## How It Works
 
-EvoClaw implements the **U2E (Understanding to Excelling) protocol** proposed in the paper — a template-free, two-dimensional co-evolution framework. Unlike EoH and FunSearch, which rely on predefined templates and optimize only local key functions, U2E performs global joint optimization across both the **functional dimension** (algorithm logic) and the **structural dimension** (code architecture).
+EvoClaw runs a **multi-agent evolutionary loop on top of an MCP server**, with persistent state, target-level search control, Pareto selection, and an optional research-analysis layer. The core execution model is not just "generate code and benchmark it"; it is a coordinated loop where different agents and tools handle planning, code generation, policy review, benchmarking, survivor selection, memory updates, and downstream research synthesis.
 
-Every experiment is tracked as a git branch. The evolution loop has six stages:
+At the evolution layer, the flow is:
 
-1. **Analysis** — automatically identify key algorithm modules worth optimizing
-2. **Planning** — decide mutation/crossover strategy and variant counts; adaptively allocate budget by temperature per target
-3. **Generation** — LLM generates code variants (mutation: single-parent refinement; crossover: two-parent combination)
-4. **Evaluation** — run benchmarks in isolated git worktrees
-5. **Selection** — keep the best, discard the rest; run cross-target Synergy checks every N generations
-6. **Reflection** — extract lessons into structured memory to guide future evolution
+1. **Initialize run state** — `evo_init` stores repo path, benchmark command, objective directions, population size, mutation / structural rates, evaluation budget, quick-check command, and protected file patterns.
+2. **Register optimization targets** — `evo_register_targets` records target functions/files, supports derived targets, and can inherit memory and active branches from a parent target after structural changes.
+3. **Plan a generation** — the server allocates per-target budget from target temperature, then schedules a mix of `mutate`, `crossover`, `structural`, and periodic `synergy` operations.
+4. **Dispatch workers** — each batch item becomes a git branch like `gen-{N}/{target}/{op}-{k}`; parent branches are chosen from the target Pareto set, current best branch, or the seed baseline.
+5. **Generate and review code** — WorkerAgent creates a variant, checks the evaluation cache via `evo_check_cache`, then submits the diff for an explicit policy gate before benchmarking.
+6. **Benchmark in isolation** — approved candidates are evaluated in isolated git worktrees; results are reported back with `evo_report_fitness` or `evo_step("fitness_ready")`.
+7. **Run multi-objective selection** — EvoClaw uses NSGA-II style non-dominated sorting and crowding distance to keep survivors, update target-local Pareto fronts, and maintain a global Pareto front.
+8. **Adapt search pressure** — target temperature increases when a target is improving and decreases after stagnation; stagnant targets get a higher structural-op rate, and targets can also be frozen or boosted manually.
+9. **Revalidate after structural edits** — if a structural operation invalidates a target, `evo_revalidate_targets` detects it, the old target can be frozen, and replacement targets can be registered with lineage preserved.
+10. **Write memory and continue** — each generation updates `memory/`, records failures and synergy results, tags the best generation branch, and advances until the evaluation budget is exhausted.
 
-The best result of each generation is tagged (`best-gen-{N}`), and the final `best-overall` branch is pushed.
+Beyond the core optimizer, the MCP server also exposes three higher-level capability layers:
+
+- **Literature layer** — `lit_ingest`, `lit_search_local`, BibTeX helpers, and code-aware Q&A over branch lineage.
+- **Benchmark / visualization layer** — tools for benchmark adaptation, isolated benchmark execution, SOTA sanity checking, and chart generation / highlighting / polishing.
+- **Research layer** — a derivation-forest workflow (`research_*` tools) that tracks hypotheses, evidence, convergence points, and contribution grading so evolution results can be turned into paper-level research narratives.
+
+All evolution state is persisted under `~/.openclaw/u2e-state/` by default, while run-specific memory is written back into the target repository under `memory/`. The main status view reports generation, evaluation budget, per-target stagnation and temperature, local/global Pareto fronts, and improvement versus the seed baseline.
 
 ### Comparison with Prior Work
 
 | Method | Template Required | Optimization Scope | Structural Evolution |
 |--------|------------------|--------------------|----------------------|
 | EoH / FunSearch | Yes (predefined) | Local functions | No |
-| **EvoClaw (U2E)** | **No** | **Global multi-target** | **Functional + Structural co-evolution** |
+| **EvoClaw** | **No** | **Global multi-target + Pareto search + research tooling** | **Functional + Structural co-evolution** |
 
 ---
 

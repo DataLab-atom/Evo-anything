@@ -85,9 +85,17 @@ npx evo-anything setup --platform openclaw
 
 ---
 
-### 方式 2：手动安装
+### 方式 2：从源码构建并手动接入
 
-#### 第 1 步：安装 evo-engine（所有平台都需要）
+适用于以下情况：
+
+- 你想本地开发或调试 EvoClaw
+- `npx evo-anything setup` 无法直接改写你的平台配置
+- 你希望手动控制插件安装和 MCP 接入过程
+
+整体分两步：先构建 `evo-engine`，再按你使用的平台完成接入。
+
+#### 第 1 步：从源码构建 evo-engine（所有平台都需要）
 
 ```bash
 git clone https://github.com/DataLab-atom/EvoClaw.git
@@ -95,12 +103,14 @@ cd EvoClaw
 npm install && npm run build
 ```
 
----
+#### 第 2 步：选择你的接入方式
 
-### OpenClaw
+如果你使用 OpenClaw，优先看下面这一节；如果你使用 Claude Code、Cursor、Windsurf 或其他 MCP 客户端，可以直接跳到下方的“平台接入”。
+
+##### OpenClaw（插件式接入）
 
 <details>
-<summary>推荐安装</summary>
+<summary>推荐：自动安装到 OpenClaw</summary>
 
 ```bash
 npx evo-anything setup
@@ -112,7 +122,7 @@ openclaw gateway restart
 </details>
 
 <details>
-<summary>本地开发模式</summary>
+<summary>开发者：重新构建后安装</summary>
 
 ```bash
 npm run build
@@ -125,7 +135,7 @@ openclaw gateway restart
 </details>
 
 <details>
-<summary>手动安装</summary>
+<summary>兜底：完全手动注册插件</summary>
 
 把构建好的插件复制到 extensions 目录，并在 `~/.openclaw/openclaw.json` 中完成注册：
 
@@ -179,6 +189,8 @@ openclaw plugins info evo-anything
 ---
 
 ## 平台接入
+
+下面这些平台都连接同一个 `evo-engine` MCP server，区别只在于各自的配置文件位置和 skill 接入方式。
 
 ### Claude Code
 
@@ -305,25 +317,35 @@ export U2E_STATE_DIR=/path/to/your/state
 
 ## 工作原理
 
-EvoClaw 实现了论文提出的 **U2E（Understanding to Excelling）协议**——一种无模板的两维协同演化框架，区别于 EoH、FunSearch 等依赖预定义模板、仅做局部函数优化的方法，U2E 同时在**功能维**（算法逻辑）和**结构维**（代码架构）上做全局联合优化。
+EvoClaw 是一个**基于 MCP server 的多 Agent 演化系统**，核心不只是“生成代码然后跑 benchmark”，而是把状态管理、目标注册、变体规划、策略审查、隔离评测、Pareto 选择、记忆写回，以及后续研究分析整合成一个闭环。
 
-所有实验以 git 分支记录，演化循环包含六个阶段：
+在演化层，实际流程是：
 
-1. **分析** — 自动识别关键算法模块（哪些代码值得优化）
-2. **规划** — 决定变异/交叉策略和每轮变体数量，按温度自适应分配预算
-3. **生成** — LLM 生成代码变体（变异：单亲改进；交叉：双亲融合）
-4. **评估** — 在隔离的 git worktree 中运行 benchmark
-5. **选择** — 保留最优，淘汰其余；每 N 代做跨目标协同（Synergy）检验
-6. **反思** — 提取经验教训，写入结构化记忆，指导后续演化
+1. **初始化运行状态** — `evo_init` 记录仓库路径、benchmark 命令、目标方向、种群大小、变异率 / 结构操作率、评测预算、quick check 命令和受保护文件模式。
+2. **注册优化目标** — `evo_register_targets` 记录目标文件与函数，支持派生目标；结构变更后，新目标还可以继承父目标的记忆和活跃分支。
+3. **规划一代候选** — server 根据各 target 的 temperature 分配预算，并调度 `mutate`、`crossover`、`structural`，以及周期性的 `synergy` 操作。
+4. **派发 Worker** — 每个 batch item 都对应一个 git 分支，如 `gen-{N}/{target}/{op}-{k}`；父分支优先从 target 的 Pareto 集、当前 best branch 或 seed baseline 中选择。
+5. **生成并审查代码** — WorkerAgent 先生成变体，调用 `evo_check_cache` 检查是否已有相同代码被评测过，再把 diff 提交给显式的 policy gate 审查。
+6. **隔离评测** — 通过审查的候选在独立 git worktree 中跑 benchmark，再用 `evo_report_fitness` 或 `evo_step("fitness_ready")` 回报结果。
+7. **多目标选择** — EvoClaw 使用 NSGA-II 风格的非支配排序和 crowding distance，筛选幸存者、更新每个 target 的局部 Pareto front，并维护全局 Pareto front。
+8. **动态调整搜索压力** — target 改进时 temperature 上升，长期停滞时下降；停滞 target 的 structural op 比例会提高，也可以手动 freeze / boost。
+9. **结构变更后重校验** — 如果 structural op 让旧 target 失效，`evo_revalidate_targets` 会检测出来；旧 target 可被冻结，再注册带 lineage 的替代 target。
+10. **写回记忆并继续** — 每一代都会更新 `memory/`、记录失败案例与 synergy 结果、给该代最佳分支打 tag，并持续推进直到评测预算耗尽。
 
-每一代的最优结果打 tag（`best-gen-{N}`），最终推送 `best-overall` 分支。
+除了核心优化器，server 还包含三层高阶能力：
+
+- **文献层** — `lit_ingest`、`lit_search_local`、BibTeX 工具，以及基于 branch lineage 的代码问答。
+- **评测 / 可视化层** — 新 benchmark 适配、隔离 benchmark 执行、与文献 SOTA 对比校验，以及图表生成 / 高亮 / 润色。
+- **研究层** — `research_*` 派生森林工具，用来追踪假设、证据、收敛点和 contribution 分级，把演化结果进一步组织成论文级研究叙事。
+
+默认情况下，演化全局状态保存在 `~/.openclaw/u2e-state/`，而具体 run 的经验记忆写回目标仓库下的 `memory/`。状态查询会汇总 generation、预算消耗、每个 target 的 stagnation 和 temperature、局部 / 全局 Pareto front，以及相对 seed baseline 的提升情况。
 
 ### 与现有方法对比
 
 | 方法 | 模板依赖 | 优化范围 | 结构演化 |
 |------|---------|---------|---------|
 | EoH / FunSearch | 需要预定义模板 | 局部函数 | 无 |
-| **EvoClaw (U2E)** | **无需模板** | **全局多目标** | **功能 + 结构协同** |
+| **EvoClaw** | **无需模板** | **全局多目标 + Pareto 搜索 + 研究工具链** | **功能 + 结构协同** |
 
 ## Skills
 
