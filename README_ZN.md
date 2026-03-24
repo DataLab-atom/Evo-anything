@@ -10,7 +10,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/DataLab-atom/EvoClaw/pulls)
 [![Build Status](https://github.com/DataLab-atom/EvoClaw/actions/workflows/ci.yml/badge.svg)](https://github.com/DataLab-atom/EvoClaw/actions/workflows/ci.yml)
 
-[安装](#安装) | [平台接入](#平台接入) | [工作原理](#工作原理) | [Skills](#skills)
+[安装](#安装) | [手动接入](#方式-2从源码构建并手动接入) | [工作原理](#工作原理) | [Skills](#skills)
 </div>
 
 ![Demo Framework Diagram](./images/system_overview.png)
@@ -102,11 +102,11 @@ cd EvoClaw
 npm install && npm run build
 ```
 
-#### 第 2 步：选择你的接入方式
+#### 第 2 步：接入你的平台
 
-如果你使用 OpenClaw，优先看下面这一节；如果你使用 Claude Code、Cursor、Windsurf 或其他 MCP 客户端，可以直接跳到下方的“平台接入”。
+下面这些平台都连接同一个 `evo-engine` MCP server，区别只在于各自的配置文件位置和 skill 接入方式。
 
-##### OpenClaw（插件式接入）
+##### OpenClaw
 
 <details>
 <summary>推荐：自动安装到 OpenClaw</summary>
@@ -184,10 +184,6 @@ openclaw plugins info evo-anything
 ```
 
 然后新开一个 agent 会话，确认 `evo_init`、`evo_get_status` 等工具已经可用。
-
-#### 第 2 步：接入你的平台
-
-下面这些平台都连接同一个 `evo-engine` MCP server，区别只在于各自的配置文件位置和 skill 接入方式。
 
 ##### Claude Code
 

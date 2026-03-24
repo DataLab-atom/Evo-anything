@@ -10,7 +10,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/DataLab-atom/EvoClaw/pulls)
 [![Build Status](https://github.com/DataLab-atom/EvoClaw/actions/workflows/ci.yml/badge.svg)](https://github.com/DataLab-atom/EvoClaw/actions/workflows/ci.yml)
 
-[Installation](#installation) | [Platform Setup](#platform-setup) | [How It Works](#how-it-works) | [Skills](#skills)
+[Installation](#installation) | [Manual Setup](#option-2-build-from-source-and-connect-manually) | [How It Works](#how-it-works) | [Skills](#skills)
 </div>
 
 ![Demo Framework Diagram](./images/system_overview.png)
@@ -102,11 +102,11 @@ cd EvoClaw
 npm install && npm run build
 ```
 
-#### Step 2: Choose your integration path
+#### Step 2: Connect your platform
 
-If you use OpenClaw, start with the section below. If you use Claude Code, Cursor, Windsurf, or another MCP client, you can jump directly to "Platform Setup".
+The platforms below all connect to the same `evo-engine` MCP server; the only difference is where each client expects its MCP configuration and how it imports skills.
 
-##### OpenClaw (plugin-style integration)
+##### OpenClaw
 
 <details>
 <summary>Recommended: install into OpenClaw automatically</summary>
@@ -184,10 +184,6 @@ openclaw plugins info evo-anything
 ```
 
 Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
-
-#### Step 2: Connect your platform
-
-The platforms below all connect to the same `evo-engine` MCP server; the only difference is where each client expects its MCP configuration and how it imports skills.
 
 ##### Claude Code
 
