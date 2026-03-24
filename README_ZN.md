@@ -185,13 +185,11 @@ openclaw plugins info evo-anything
 
 然后新开一个 agent 会话，确认 `evo_init`、`evo_get_status` 等工具已经可用。
 
----
-
-## 平台接入
+#### 第 2 步：接入你的平台
 
 下面这些平台都连接同一个 `evo-engine` MCP server，区别只在于各自的配置文件位置和 skill 接入方式。
 
-### Claude Code
+##### Claude Code
 
 在项目根目录或全局 `.claude/settings.json` 中添加 MCP server：
 
@@ -214,9 +212,7 @@ ln -s $(pwd)/plugin/skills/* ~/.claude/skills/
 
 重启 Claude Code 即可使用。
 
----
-
-### Cursor
+##### Cursor
 
 在项目根目录的 `.cursor/mcp.json` 中添加：
 
@@ -237,9 +233,7 @@ Cursor 会自动发现 MCP tools（`evo_init`、`evo_next_batch` 等）。Skills
 cp plugin/AGENTS.md .cursor/rules/evo-agents.md
 ```
 
----
-
-### Windsurf
+##### Windsurf
 
 在全局 `~/.codeium/windsurf/mcp_config.json` 中添加：
 
@@ -254,9 +248,7 @@ cp plugin/AGENTS.md .cursor/rules/evo-agents.md
 }
 ```
 
----
-
-### 其它 MCP 兼容客户端
+##### 其它 MCP 兼容客户端
 
 EvoClaw 的核心是一个标准 [MCP](https://modelcontextprotocol.io) server。任何支持 MCP stdio 传输的客户端都可以接入：
 
@@ -267,9 +259,7 @@ evo-engine
 
 提供的 MCP tools：`evo_init`、`evo_register_targets`、`evo_report_seed`、`evo_step`、`evo_next_batch`、`evo_report_fitness`、`evo_select_survivors`、`evo_get_status`、`evo_get_lineage`、`evo_freeze_target`、`evo_boost_target`、`evo_record_synergy`、`evo_check_cache`。
 
----
-
-### 可选配置
+#### 可选配置
 
 演化状态默认存储在 `~/.openclaw/u2e-state/`，可通过环境变量自定义（`U2E` 即论文名 *Understanding to Excelling* 缩写）：
 

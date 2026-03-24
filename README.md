@@ -185,13 +185,11 @@ openclaw plugins info evo-anything
 
 Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
 
----
-
-## Platform Setup
+#### Step 2: Connect your platform
 
 The platforms below all connect to the same `evo-engine` MCP server; the only difference is where each client expects its MCP configuration and how it imports skills.
 
-### Claude Code
+##### Claude Code
 
 Add the MCP server to your project root or global `.claude/settings.json`:
 
@@ -214,9 +212,7 @@ ln -s $(pwd)/plugin/skills/* ~/.claude/skills/
 
 Restart Claude Code and you're ready.
 
----
-
-### Cursor
+##### Cursor
 
 Add to `.cursor/mcp.json` in your project root:
 
@@ -237,9 +233,7 @@ Cursor will auto-discover MCP tools (`evo_init`, `evo_next_batch`, etc.). Import
 cp plugin/AGENTS.md .cursor/rules/evo-agents.md
 ```
 
----
-
-### Windsurf
+##### Windsurf
 
 Add to `~/.codeium/windsurf/mcp_config.json`:
 
@@ -254,9 +248,7 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 }
 ```
 
----
-
-### Any Other MCP-Compatible Client
+##### Any Other MCP-Compatible Client
 
 EvoClaw's core is a standard [MCP](https://modelcontextprotocol.io) server. Any client that supports MCP stdio transport can connect:
 
@@ -267,9 +259,7 @@ evo-engine
 
 Available MCP tools: `evo_init`, `evo_register_targets`, `evo_report_seed`, `evo_step`, `evo_next_batch`, `evo_report_fitness`, `evo_select_survivors`, `evo_revalidate_targets`, `evo_get_status`, `evo_get_lineage`, `evo_freeze_target`, `evo_boost_target`, `evo_record_synergy`, `evo_check_cache`.
 
----
-
-### Optional Configuration
+#### Optional Configuration
 
 Evolution state is stored in `~/.openclaw/u2e-state/` by default. Override with an environment variable (`U2E` stands for *Understanding to Excelling*, the paper's acronym):
 
