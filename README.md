@@ -1,8 +1,9 @@
-<div align="center">
-
-<img src="./images/image.png" alt="EvoClaw Logo" width="220" />
+<p align="center">
+  <img src="./images/image.png" alt="EvoClaw Logo" width="220" />
+</p>
 
 # EvoClaw Plugin — Git-Based Evolutionary Code Optimizer
+<div align="center">
 
 [![文档](https://img.shields.io/badge/文档-中文版-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/README_ZN.md)
 [![document](https://img.shields.io/badge/document-English-blue.svg)](https://github.com/DataLab-atom/EvoClaw/blob/main/README.md)
@@ -10,17 +11,13 @@
 
 </div>
 
-<div align="center">
-  <img src="./images/system_overview.png" alt="Demo Framework Diagram" />
-</div>
+![Demo Framework Diagram](./images/system_overview.png)
 
-> EvoClaw represents a newer LLM-driven automation paradigm for algorithm and code optimization. Instead of limiting LLM-based design to task-specific templates, manual task adaptation, and research-oriented scaffolding, it turns the entire workflow into an engineering-oriented automated evolution system for arbitrary git repositories. Building on the direction opened by systems such as LLM4AD and AlphaEvolve, EvoClaw focuses not only on generating better candidates, but on connecting repository discovery, environment setup, benchmark integration, target identification, code generation, evaluation, selection, and result tracking into a runnable closed loop.
->
-> Compared with the previous workflow pattern where researchers often had to manually adapt code and wire up evaluation pipelines before search could even begin, EvoClaw raises the level of automation and makes interaction far more natural. Users can describe an optimization goal in natural language, and the system automatically drives the full evolution process around a benchmark or evaluation script, continuously selecting and retaining better-performing implementations over multiple iterations. For algorithm repositories, training code, and other quantitatively evaluable systems, this shift from a semi-manual research workflow to a fully automated loop is the core advantage.
->
-> As an engineering-oriented evolution engine integrated into the OpenClaw/MCP ecosystem, EvoClaw treats git branches as candidate individuals and benchmark results as fitness. By combining multi-objective selection, policy constraints, and cross-generation memory, it enables automatic, traceable, and sustained optimization of any repository with a benchmark or evaluation script.
+EvoClaw represents a newer LLM-driven automation paradigm for algorithm and code optimization. Instead of limiting LLM-based design to task-specific templates, manual task adaptation, and research-oriented scaffolding, it turns the entire workflow into an engineering-oriented automated evolution system for arbitrary git repositories. Building on the direction opened by systems such as LLM4AD and AlphaEvolve, EvoClaw focuses not only on generating better candidates, but on connecting repository discovery, environment setup, benchmark integration, target identification, code generation, evaluation, selection, and result tracking into a runnable closed loop.
 
----
+Compared with the previous workflow pattern where researchers often had to manually adapt code and wire up evaluation pipelines before search could even begin, EvoClaw raises the level of automation and makes interaction far more natural. Users can describe an optimization goal in natural language, and the system automatically drives the full evolution process around a benchmark or evaluation script, continuously selecting and retaining better-performing implementations over multiple iterations. For algorithm repositories, training code, and other quantitatively evaluable systems, this shift from a semi-manual research workflow to a fully automated loop is the core advantage.
+
+As an engineering-oriented evolution engine integrated into the OpenClaw/MCP ecosystem, EvoClaw treats git branches as candidate individuals and benchmark results as fitness. By combining multi-objective selection, policy constraints, and cross-generation memory, it enables automatic, traceable, and sustained optimization of any repository with a benchmark or evaluation script.
 
 ## Why EvoClaw
 
@@ -31,8 +28,6 @@
 | Automation scope | Often covers search or local optimization only | Covers repository discovery, environment setup, target identification, code generation, evaluation, selection, and tracking |
 | Applicability | More tied to predefined tasks, templates, or research examples | Works for arbitrary git repositories with quantitative evaluation |
 
----
-
 ## Demo Example
 <div align="center">
 
@@ -40,18 +35,16 @@ https://github.com/user-attachments/assets/94b63348-de0d-4602-a2ce-3e73740656e2
 
 </div>
 
----
+## Installation
 
-## Quick Start
-
-### 1) Install prerequisites
+### Prerequisites
 
 **Required:**
 - Node.js >= 16
 - Git
 - GitHub CLI (`gh`) — required for `/hunt` to search repositories and open PRs
 
-**Optional:**
+**Optional (automatically enabled when installed):**
 - `oracle` CLI — MapAgent whole-repo context analysis (`npm install -g oracle`)
 - `claude` CLI — WorkerAgent complex variant generation using Claude Code instead of direct edits
 - `codex` CLI — alternative for WorkerAgent complex variant generation
@@ -60,53 +53,72 @@ https://github.com/user-attachments/assets/94b63348-de0d-4602-a2ce-3e73740656e2
 - `pyflakes` — static import/name checks before committing variants (`npm install -g pyflakes` or `pipx install pyflakes`)
 - OpenClaw skills: `oracle`, `arxiv-watcher`, `summarize`, `session-logs` (install via `clawhub install <slug>`)
 
-### 2) Install EvoClaw
-
-If you just want to use EvoClaw:
+### Option 1: npm (recommended)
 
 ```bash
 npm install -g evo-anything
 ```
 
-If you are developing the plugin locally:
+This automatically verifies dependencies and configures the MCP server during the npm postinstall step.
+
+After installation, configure your AI IDE:
+
+```bash
+# Configure all supported platforms (Claude Code, Cursor, Windsurf, OpenClaw)
+npx evo-anything setup
+
+# Or configure a specific platform
+npx evo-anything setup --platform claude
+npx evo-anything setup --platform cursor
+npx evo-anything setup --platform windsurf
+npx evo-anything setup --platform openclaw
+```
+
+---
+
+### Option 2: Manual
+
+#### Step 1: Install evo-engine (required for all platforms)
 
 ```bash
 git clone https://github.com/DataLab-atom/EvoClaw.git
 cd EvoClaw
-npm install
-npm run build
+npm install && npm run build
 ```
 
-### 3) Connect EvoClaw to your platform
+---
 
-#### OpenClaw
+### OpenClaw
 
-Recommended:
+<details>
+<summary>Recommended install</summary>
 
 ```bash
-npx evo-anything setup --platform openclaw
+npx evo-anything setup
 openclaw gateway restart
 ```
 
-This is the recommended path for OpenClaw users. `setup` installs the plugin into `~/.openclaw/extensions/evo-anything`, enables it in `plugins.allow` and `plugins.entries`, registers bundled skills, and adds `"evo-anything"` to `tools.alsoAllow` so native tools such as `evo_init` appear in coding-profile agent tool tables.
+`setup` installs the plugin into `~/.openclaw/extensions/evo-anything`, enables it in `plugins.allow` and `plugins.entries`, registers bundled skills, and adds `"evo-anything"` to `tools.alsoAllow` so `evo_*` tools appear in agent tool tables.
 
-Verify:
+</details>
 
-```bash
-openclaw plugins info evo-anything
-```
-
-Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
-
-If you changed code that affects `dist/`, reinstall with:
+<details>
+<summary>Local development mode</summary>
 
 ```bash
 npm run build
-npx evo-anything setup --platform openclaw
+npx evo-anything setup
 openclaw gateway restart
 ```
 
-Only use manual install if `setup` cannot modify your OpenClaw config:
+Use this after changing `plugin/index.ts`, `plugin/server.ts`, or any other code that affects `dist/`.
+
+</details>
+
+<details>
+<summary>Manual install</summary>
+
+Copy the built plugin package to the extensions directory and register it in `~/.openclaw/openclaw.json`:
 
 ```bash
 mkdir -p ~/.openclaw/extensions/evo-anything
@@ -143,13 +155,19 @@ cp openclaw.plugin.json package.json ~/.openclaw/extensions/evo-anything/
 openclaw gateway restart
 ```
 
+</details>
+
 `plugins.allow` controls whether OpenClaw loads the plugin. `tools.alsoAllow` controls whether the plugin's native tools are exposed to coding-profile agents.
 
-#### Other IDEs
+**Verify:**
 
-Use `npx evo-anything setup --platform <name>` if supported, or follow the MCP configuration examples below for Claude Code, Cursor, and Windsurf.
+```bash
+openclaw plugins info evo-anything
+```
 
-## Platform Setup
+Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
+
+---
 
 ### Claude Code
 
@@ -254,8 +272,6 @@ Or configure via `openclaw.json`:
 }
 ```
 
----
-
 ## Quick Start
 
 ```
@@ -275,8 +291,6 @@ You send: I want SOTA on CIFAR-100-LT
          ↓
   Pushes best branch + sends final report when done
 ```
-
----
 
 ## How It Works
 
@@ -300,8 +314,6 @@ The best result of each generation is tagged (`best-gen-{N}`), and the final `be
 | EoH / FunSearch | Yes (predefined) | Local functions | No |
 | **EvoClaw (U2E)** | **No** | **Global multi-target** | **Functional + Structural co-evolution** |
 
----
-
 ## Skills
 
 | Command | Description |
@@ -312,8 +324,6 @@ The best result of each generation is tagged (`best-gen-{N}`), and the final `be
 | `/report` | Generate a full evolution report |
 | `/boost <target_id>` | Increase the priority of an optimization target |
 | `/freeze <target_id>` | Freeze a target, stopping evolution on it |
-
----
 
 ## Repository Structure
 
@@ -356,8 +366,6 @@ EvoClaw/
         └── evo-finish.lobster # finish flow (tag→push→approval gate→PR)
 ```
 
----
-
 ## Evolution Memory
 
 EvoClaw maintains structured memory in the target repository to avoid repeating failed attempts:
@@ -380,8 +388,6 @@ gen-{N}/synergy/{targetA}+{targetB}-{V}  # cross-target combination
 ```
 
 Tags: `seed-baseline`, `best-gen-{N}`, `best-overall`
-
----
 
 ## Acknowledgements
 
