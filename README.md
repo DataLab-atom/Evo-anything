@@ -13,9 +13,20 @@
 
 ![Demo Framework Diagram](./images/system_overview.png)
 
-EvoClaw is an automated evolutionary optimization system for any git repository with a benchmark or evaluation script. It uses an LLM-driven **structural-functional co-evolution** workflow to automatically identify optimization targets, generate code variants, execute benchmark evaluations, and continuously select and retain better-performing implementations across multiple iterations.
+EvoClaw represents a newer LLM-driven automation paradigm for algorithm and code optimization. Instead of limiting LLM-based design to task-specific templates, manual task adaptation, and research-oriented scaffolding, it turns the entire workflow into an engineering-oriented automated evolution system for arbitrary git repositories. Building on the direction opened by systems such as LLM4AD and AlphaEvolve, EvoClaw focuses not only on generating better candidates, but on connecting repository discovery, environment setup, benchmark integration, target identification, code generation, evaluation, selection, and result tracking into a runnable closed loop.
 
-As an engineering-oriented evolution engine integrated into the OpenClaw/MCP ecosystem, EvoClaw treats git branches as candidate individuals and benchmark results as fitness. By combining multi-objective selection, policy constraints, and cross-generation memory, it enables automatic, traceable, and sustained optimization of algorithms, model training code, and other software repositories with quantitative evaluation pipelines.
+Compared with the previous workflow pattern where researchers often had to manually adapt code and wire up evaluation pipelines before search could even begin, EvoClaw raises the level of automation and makes interaction far more natural. Users can describe an optimization goal in natural language, and the system automatically drives the full evolution process around a benchmark or evaluation script, continuously selecting and retaining better-performing implementations over multiple iterations. For algorithm repositories, training code, and other quantitatively evaluable systems, this shift from a semi-manual research workflow to a fully automated loop is the core advantage.
+
+As an engineering-oriented evolution engine integrated into the OpenClaw/MCP ecosystem, EvoClaw treats git branches as candidate individuals and benchmark results as fitness. By combining multi-objective selection, policy constraints, and cross-generation memory, it enables automatic, traceable, and sustained optimization of any repository with a benchmark or evaluation script.
+
+## Why EvoClaw
+
+| Key Question | Traditional LLM4AD / AlphaEvolve-style workflow | EvoClaw |
+|-------------|--------------------------------------------------|---------|
+| Task onboarding | Often requires manual task-code adaptation, interface wiring, and evaluation hookup | Directly targets git repositories and auto-connects through benchmark/eval entry points |
+| Interaction model | Usually research-platform driven or script-orchestrated | Natural-language driven, with search, setup, evolution, and reporting connected end to end |
+| Automation scope | Often covers search or local optimization only | Covers repository discovery, environment setup, target identification, code generation, evaluation, selection, and tracking |
+| Applicability | More tied to predefined tasks, templates, or research examples | Works for arbitrary git repositories with quantitative evaluation |
 
 ## Demo Example
 <div align="center">
@@ -295,10 +306,6 @@ Every experiment is tracked as a git branch. The evolution loop has six stages:
 6. **Reflection** — extract lessons into structured memory to guide future evolution
 
 The best result of each generation is tagged (`best-gen-{N}`), and the final `best-overall` branch is pushed.
-
-LLM4AD is one of our key prior works. It systematized the use of large language models for automatic algorithm design by providing a research platform with unified method interfaces, benchmark tasks, and evaluation workflows. Building on that foundation, EvoClaw extends the idea beyond a task-oriented research platform into an engineering-oriented automated evolution system for arbitrary git repositories.
-
-The main advantage of EvoClaw is its higher degree of automation and more natural interaction model. While previous workflows often required manually adapting task code and wiring evaluation pipelines, EvoClaw allows users to specify goals in natural language and then automatically handles repository discovery, environment setup, benchmark integration, target identification, code variant generation, evaluation, selection, and result tracking, turning LLM-based algorithm and code optimization into a fully automated closed loop.
 
 ### Comparison with Prior Work
 
