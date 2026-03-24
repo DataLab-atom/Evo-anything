@@ -35,16 +35,16 @@ https://github.com/user-attachments/assets/94b63348-de0d-4602-a2ce-3e73740656e2
 
 </div>
 
-## Installation
+## Quick Start
 
-### Prerequisites
+### 1) Install prerequisites
 
 **Required:**
 - Node.js >= 16
 - Git
 - GitHub CLI (`gh`) — required for `/hunt` to search repositories and open PRs
 
-**Optional (automatically enabled when installed):**
+**Optional:**
 - `oracle` CLI — MapAgent whole-repo context analysis (`npm install -g oracle`)
 - `claude` CLI — WorkerAgent complex variant generation using Claude Code instead of direct edits
 - `codex` CLI — alternative for WorkerAgent complex variant generation
@@ -53,72 +53,53 @@ https://github.com/user-attachments/assets/94b63348-de0d-4602-a2ce-3e73740656e2
 - `pyflakes` — static import/name checks before committing variants (`npm install -g pyflakes` or `pipx install pyflakes`)
 - OpenClaw skills: `oracle`, `arxiv-watcher`, `summarize`, `session-logs` (install via `clawhub install <slug>`)
 
-### Option 1: npm (recommended)
+### 2) Install EvoClaw
+
+If you just want to use EvoClaw:
 
 ```bash
 npm install -g evo-anything
 ```
 
-This automatically verifies dependencies and configures the MCP server during the npm postinstall step.
-
-After installation, configure your AI IDE:
-
-```bash
-# Configure all supported platforms (Claude Code, Cursor, Windsurf, OpenClaw)
-npx evo-anything setup
-
-# Or configure a specific platform
-npx evo-anything setup --platform claude
-npx evo-anything setup --platform cursor
-npx evo-anything setup --platform windsurf
-npx evo-anything setup --platform openclaw
-```
-
----
-
-### Option 2: Manual
-
-#### Step 1: Install evo-engine (required for all platforms)
+If you are developing the plugin locally:
 
 ```bash
 git clone https://github.com/DataLab-atom/EvoClaw.git
 cd EvoClaw
-npm install && npm run build
+npm install
+npm run build
 ```
 
----
+### 3) Connect EvoClaw to your platform
 
-### OpenClaw
+#### OpenClaw
 
-<details>
-<summary>Recommended install</summary>
+Recommended:
 
 ```bash
-npx evo-anything setup
+npx evo-anything setup --platform openclaw
 openclaw gateway restart
 ```
 
-`setup` installs the plugin into `~/.openclaw/extensions/evo-anything`, enables it in `plugins.allow` and `plugins.entries`, registers bundled skills, and adds `"evo-anything"` to `tools.alsoAllow` so `evo_*` tools appear in agent tool tables.
+This is the recommended path for OpenClaw users. `setup` installs the plugin into `~/.openclaw/extensions/evo-anything`, enables it in `plugins.allow` and `plugins.entries`, registers bundled skills, and adds `"evo-anything"` to `tools.alsoAllow` so native tools such as `evo_init` appear in coding-profile agent tool tables.
 
-</details>
+Verify:
 
-<details>
-<summary>Local development mode</summary>
+```bash
+openclaw plugins info evo-anything
+```
+
+Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
+
+If you changed code that affects `dist/`, reinstall with:
 
 ```bash
 npm run build
-npx evo-anything setup
+npx evo-anything setup --platform openclaw
 openclaw gateway restart
 ```
 
-Use this after changing `plugin/index.ts`, `plugin/server.ts`, or any other code that affects `dist/`.
-
-</details>
-
-<details>
-<summary>Manual install</summary>
-
-Copy the built plugin package to the extensions directory and register it in `~/.openclaw/openclaw.json`:
+Only use manual install if `setup` cannot modify your OpenClaw config:
 
 ```bash
 mkdir -p ~/.openclaw/extensions/evo-anything
@@ -155,19 +136,13 @@ cp openclaw.plugin.json package.json ~/.openclaw/extensions/evo-anything/
 openclaw gateway restart
 ```
 
-</details>
-
 `plugins.allow` controls whether OpenClaw loads the plugin. `tools.alsoAllow` controls whether the plugin's native tools are exposed to coding-profile agents.
 
-**Verify:**
+#### Other IDEs
 
-```bash
-openclaw plugins info evo-anything
-```
+Use `npx evo-anything setup --platform <name>` if supported, or follow the MCP configuration examples below for Claude Code, Cursor, and Windsurf.
 
-Then start a fresh agent session and confirm tools such as `evo_init` or `evo_get_status` are available.
-
----
+## Platform Setup
 
 ### Claude Code
 
