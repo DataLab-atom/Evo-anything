@@ -104,7 +104,7 @@ npm install && npm run build
 
 #### 第 2 步：接入你的平台
 
-下面这些平台都连接同一个 `evo-engine` MCP server，区别只在于各自的配置文件位置和 skill 接入方式。
+在OpenClaw中作为插件接入，而其余平台都连接同一个 `evo-engine` MCP server，区别只在于各自的配置文件位置和 skill 接入方式。
 
 ##### OpenClaw
 
