@@ -28,8 +28,6 @@
 
 Join the EvoClaw community to share usage experience, evolution case studies, and future collaboration ideas.
 
-The WeChat group QR code can be added later under `images/`. A good default path is `images/wechat_qr.png`; once uploaded, uncomment the block below:
-
 <!--
 <div align="center">
   <img src="./images/wechat_qr.png" alt="EvoClaw WeChat Group QR" width="260" />
