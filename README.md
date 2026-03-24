@@ -22,6 +22,22 @@
 > **As an engineering-oriented evolution engine integrated into the OpenClaw/MCP ecosystem,** EvoClaw treats git branches as candidate individuals and benchmark results as fitness. By combining multi-objective selection, policy constraints, and cross-generation memory, it enables automatic, traceable, and sustained optimization of any repository with a benchmark or evaluation script.
 > 
 
+---
+
+## Community
+
+Join the EvoClaw community to share usage experience, evolution case studies, and future collaboration ideas.
+
+The WeChat group QR code can be added later under `images/`. A good default path is `images/wechat_qr.png`; once uploaded, uncomment the block below:
+
+<!--
+<div align="center">
+  <img src="./images/wechat_qr.png" alt="EvoClaw WeChat Group QR" width="260" />
+</div>
+-->
+
+---
+
 ## Why EvoClaw
 
 | Key Question | Traditional LLM4AD / AlphaEvolve-style workflow | EvoClaw |
@@ -299,22 +315,6 @@ You say: optimize this repo https://github.com/example/long-tail-repo
          ↓
   Output the best branch, Pareto results, and the final evolution report
 ```
-
----
-
-## Community
-
-Join the EvoClaw community to share usage experience, evolution case studies, and future collaboration ideas.
-
-The WeChat group QR code can be added later under `images/`. A good default path is `images/wechat_qr.png`; once uploaded, uncomment the block below:
-
-<!--
-<div align="center">
-  <img src="./images/wechat_qr.png" alt="EvoClaw WeChat Group QR" width="260" />
-</div>
--->
-
----
 
 ## How It Works
 
