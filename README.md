@@ -28,11 +28,9 @@
 
 Join the EvoAny community to share usage experience, evolution case studies, and future collaboration ideas.
 
-<!--
 <div align="center">
   <img src="./images/wechat_qr.jpg" alt="EvoAny WeChat Group QR" width="260" />
 </div>
--->
 
 ---
 
