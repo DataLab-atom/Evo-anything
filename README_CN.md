@@ -355,6 +355,7 @@ EvoAny 是一个**基于 MCP server 的多 Agent 演化系统**，核心不只�
 EvoAny/
 ├── LICENSE
 ├── README.md
+├── README_CN.md
 ├── research/                  # 生态调研文档
 │   ├── 01_openclaw_existing_capabilities.md
 │   ├── 02_compatible_products_capabilities.md
