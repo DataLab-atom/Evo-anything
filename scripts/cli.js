@@ -38,6 +38,11 @@ function merge(target, source) {
   return target;
 }
 
+function ensureStringArrayIncludes(obj, key, value) {
+  if (!Array.isArray(obj[key])) obj[key] = [];
+  if (!obj[key].includes(value)) obj[key].push(value);
+}
+
 function copyDirRecursive(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   for (const entry of fs.readdirSync(src)) {
@@ -161,6 +166,13 @@ function diagnose() {
     if (evoSkills.length === 0) throw new Error('no skills enabled');
     if (!skills.evolve) throw new Error('"evolve" skill not registered');
     return `${evoSkills.length} enabled: ${evoSkills.join(', ')}`;
+  });
+  check('tools.alsoAllow registration', () => {
+    const config = readJSON(CONFIG_PATH);
+    const alsoAllow = config?.tools?.alsoAllow;
+    if (!Array.isArray(alsoAllow)) throw new Error('tools.alsoAllow is missing or not an array');
+    if (!alsoAllow.includes('evo-anything')) throw new Error('"evo-anything" not in tools.alsoAllow');
+    return `[${alsoAllow.join(', ')}]`;
   });
   check('skill files in extensions', () => {
     const skillsDir = path.join(EXT_DIR, 'plugin', 'skills');
@@ -289,6 +301,13 @@ function setupOpenclaw() {
     config.skills.entries[skill] = { enabled: true };
   }
   ok(`skills.entries: ${skillNames.join(', ')} registered`);
+
+  // tools.alsoAllow — expose plugin tools to coding-profile agents
+  if (!config.tools || typeof config.tools !== 'object' || Array.isArray(config.tools)) {
+    config.tools = {};
+  }
+  ensureStringArrayIncludes(config.tools, 'alsoAllow', 'evo-anything');
+  ok('tools.alsoAllow: evo-anything added');
 
   writeJSON(CONFIG_PATH, config);
   ok('openclaw.json written');

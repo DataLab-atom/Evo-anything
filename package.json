@@ -9,7 +9,7 @@
     "code-optimization",
     "openclaw"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DataLab-atom/Evo-anything.git"
@@ -18,7 +18,9 @@
     "node": ">=16"
   },
   "openclaw": {
-    "extensions": ["./dist/index.js"]
+    "extensions": [
+      "./dist/index.js"
+    ]
   },
   "bin": {
     "evo-anything": "scripts/cli.js"
