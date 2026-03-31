@@ -68,6 +68,18 @@ import {
   getForestSummary,
 } from "./src/research_state.js";
 
+import {
+  generateExperimentsSection,
+  generateIntroductionSection,
+  generateMethodSection,
+  generatePaperBundle,
+  generatePaperDraft,
+  generateRelatedWorkSection,
+  validatePaperArtifacts,
+  writeGeneratedArtifact,
+  writeGeneratedArtifacts,
+} from "./src/paper_writer.js";
+
 import type { ContributionLevel } from "./src/models.js";
 
 // ---------------------------------------------------------------------------
@@ -1349,6 +1361,236 @@ export default function (api: any) {
       const shouldContinue = count < maxIter && forest?.status !== "done";
       if (!shouldContinue && forest?.status !== "done") markForestDone(params.forest_id);
       return { content: [{ type: "text", text: JSON.stringify({ iteration: count, max_iterations: maxIter, continue: shouldContinue, status: forest?.status }) }] };
+    },
+  });
+
+  // =======================================================================
+  // D/E-layer: Paper writing tools
+  // =======================================================================
+  api.registerTool({
+    name: "write_intro",
+    description: "Generate an introduction section LaTeX draft from a derivation forest.",
+    parameters: {
+      type: "object",
+      properties: {
+        forest_id: { type: "string", description: "Research forest ID." },
+        section_title: { type: "string", description: "LaTeX section title. Defaults to Introduction." },
+        output_path: { type: "string", description: "Optional output path. Defaults to research/paper/sections/introduction.tex when repo state is available." },
+      },
+      required: ["forest_id"],
+    },
+    async execute(_id: string, params: any) {
+      const forest = getForest(params.forest_id);
+      if (!forest) return { content: [{ type: "text", text: JSON.stringify({ error: `Forest '${params.forest_id}' not found.` }) }] };
+
+      const draft = generateIntroductionSection(forest, params.section_title ?? "Introduction");
+      let writtenTo: string | null = null;
+      try {
+        const repo = getState().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/introduction.tex";
+        writtenTo = writeGeneratedArtifact(repo, outputPath, draft.latex);
+      } catch {
+        if (params.output_path) {
+          return { content: [{ type: "text", text: JSON.stringify({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary }) }] };
+        }
+      }
+
+      return { content: [{ type: "text", text: JSON.stringify({ forest_id: params.forest_id, latex: draft.latex, summary: draft.summary, output_path: writtenTo }) }] };
+    },
+  });
+
+  api.registerTool({
+    name: "write_related",
+    description: "Generate a related-work section LaTeX draft from a derivation forest.",
+    parameters: {
+      type: "object",
+      properties: {
+        forest_id: { type: "string", description: "Research forest ID." },
+        section_title: { type: "string", description: "LaTeX section title. Defaults to Related Work." },
+        output_path: { type: "string", description: "Optional output path. Defaults to research/paper/sections/related_work.tex when repo state is available." },
+      },
+      required: ["forest_id"],
+    },
+    async execute(_id: string, params: any) {
+      const forest = getForest(params.forest_id);
+      if (!forest) return { content: [{ type: "text", text: JSON.stringify({ error: `Forest '${params.forest_id}' not found.` }) }] };
+
+      const draft = generateRelatedWorkSection(forest, params.section_title ?? "Related Work");
+      let writtenTo: string | null = null;
+      try {
+        const repo = getState().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/related_work.tex";
+        writtenTo = writeGeneratedArtifact(repo, outputPath, draft.latex);
+      } catch {
+        if (params.output_path) {
+          return { content: [{ type: "text", text: JSON.stringify({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary }) }] };
+        }
+      }
+
+      return { content: [{ type: "text", text: JSON.stringify({ forest_id: params.forest_id, latex: draft.latex, summary: draft.summary, output_path: writtenTo }) }] };
+    },
+  });
+
+  api.registerTool({
+    name: "write_experiment",
+    description: "Generate an experiments section LaTeX draft from a derivation forest.",
+    parameters: {
+      type: "object",
+      properties: {
+        forest_id: { type: "string", description: "Research forest ID." },
+        section_title: { type: "string", description: "LaTeX section title. Defaults to Experiments." },
+        output_path: { type: "string", description: "Optional output path. Defaults to research/paper/sections/experiments.tex when repo state is available." },
+      },
+      required: ["forest_id"],
+    },
+    async execute(_id: string, params: any) {
+      const forest = getForest(params.forest_id);
+      if (!forest) return { content: [{ type: "text", text: JSON.stringify({ error: `Forest '${params.forest_id}' not found.` }) }] };
+
+      const draft = generateExperimentsSection(forest, params.section_title ?? "Experiments");
+      let writtenTo: string | null = null;
+      try {
+        const repo = getState().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/experiments.tex";
+        writtenTo = writeGeneratedArtifact(repo, outputPath, draft.latex);
+      } catch {
+        if (params.output_path) {
+          return { content: [{ type: "text", text: JSON.stringify({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary }) }] };
+        }
+      }
+
+      return { content: [{ type: "text", text: JSON.stringify({ forest_id: params.forest_id, latex: draft.latex, summary: draft.summary, output_path: writtenTo }) }] };
+    },
+  });
+
+  api.registerTool({
+    name: "write_method",
+    description: "Generate a method section LaTeX draft from a derivation forest.",
+    parameters: {
+      type: "object",
+      properties: {
+        forest_id: { type: "string", description: "Research forest ID." },
+        section_title: { type: "string", description: "LaTeX section title. Defaults to Method." },
+        output_path: { type: "string", description: "Optional output path. Defaults to research/paper/sections/method.tex when repo state is available." },
+      },
+      required: ["forest_id"],
+    },
+    async execute(_id: string, params: any) {
+      const forest = getForest(params.forest_id);
+      if (!forest) return { content: [{ type: "text", text: JSON.stringify({ error: `Forest '${params.forest_id}' not found.` }) }] };
+
+      const draft = generateMethodSection(forest, params.section_title ?? "Method");
+      let writtenTo: string | null = null;
+      try {
+        const repo = getState().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/method.tex";
+        writtenTo = writeGeneratedArtifact(repo, outputPath, draft.latex);
+      } catch {
+        if (params.output_path) {
+          return { content: [{ type: "text", text: JSON.stringify({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary }) }] };
+        }
+      }
+
+      return { content: [{ type: "text", text: JSON.stringify({
+        forest_id: params.forest_id,
+        latex: draft.latex,
+        summary: draft.summary,
+        output_path: writtenTo,
+      }) }] };
+    },
+  });
+
+  api.registerTool({
+    name: "paper_assemble",
+    description: "Assemble a multi-file LaTeX paper draft, optionally generating sections from a derivation forest.",
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Paper title." },
+        forest_id: { type: "string", description: "Forest ID used to auto-generate the method and section placeholders." },
+        author: { type: "string", description: "Author line for the LaTeX draft." },
+        abstract_latex: { type: "string", description: "Abstract body text. Auto-generated if omitted and forest_id is given." },
+        intro_latex: { type: "string", description: "Full LaTeX for the introduction section." },
+        related_latex: { type: "string", description: "Full LaTeX for the related-work section." },
+        method_latex: { type: "string", description: "Full LaTeX for the method section." },
+        experiments_latex: { type: "string", description: "Full LaTeX for the experiments section." },
+        conclusion_latex: { type: "string", description: "Full LaTeX for the conclusion section." },
+        bibliography_path: { type: "string", description: "Path to the .bib file. Defaults to research/refs/references.bib." },
+        sections_dir: { type: "string", description: "Directory for section .tex files. Defaults to research/paper/sections." },
+        output_path: { type: "string", description: "Optional output path. Defaults to research/paper/main.tex when repo state is available." },
+      },
+      required: ["title"],
+    },
+    async execute(_id: string, params: any) {
+      const forest = params.forest_id ? getForest(params.forest_id) : null;
+      if (params.forest_id && !forest) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: `Forest '${params.forest_id}' not found.` }) }] };
+      }
+      if (!forest && !params.method_latex) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: "Either forest_id or method_latex is required to assemble a paper draft." }) }] };
+      }
+
+      const outputPath = params.output_path ?? "research/paper/main.tex";
+      const bundle = generatePaperBundle(forest, {
+        title: params.title,
+        author: params.author,
+        abstract_latex: params.abstract_latex,
+        intro_latex: params.intro_latex,
+        related_latex: params.related_latex,
+        method_latex: params.method_latex,
+        experiments_latex: params.experiments_latex,
+        conclusion_latex: params.conclusion_latex,
+        bibliography_path: params.bibliography_path,
+        sections_dir: params.sections_dir,
+        output_path: outputPath,
+      });
+
+      let writtenFiles: Record<string, string> | null = null;
+      try {
+        const repo = getState().config.repo_path;
+        writtenFiles = writeGeneratedArtifacts(repo, bundle.files);
+      } catch {
+        if (params.output_path) {
+          return { content: [{ type: "text", text: JSON.stringify({ error: "Cannot resolve output path because no active evolution repo is available.", latex: bundle.main_latex, summary: bundle.main_summary, files: bundle.files }) }] };
+        }
+      }
+
+      return { content: [{ type: "text", text: JSON.stringify({
+        title: params.title,
+        forest_id: params.forest_id ?? null,
+        latex: bundle.main_latex,
+        files: bundle.files,
+        summary: bundle.main_summary,
+        written_files: writtenFiles,
+      }) }] };
+    },
+  });
+
+  api.registerTool({
+    name: "paper_validate",
+    description: "Validate generated paper artifacts for missing files, placeholders, and bibliography presence.",
+    parameters: {
+      type: "object",
+      properties: {
+        output_path: { type: "string", description: "Main LaTeX file path. Defaults to research/paper/main.tex." },
+        bibliography_path: { type: "string", description: "Bibliography path. Defaults to research/refs/references.bib." },
+      },
+      required: [],
+    },
+    async execute(_id: string, params: any) {
+      let repo: string;
+      try {
+        repo = getState().config.repo_path;
+      } catch {
+        return { content: [{ type: "text", text: JSON.stringify({ error: "No active evolution repo is available for validation." }) }] };
+      }
+
+      const result = validatePaperArtifacts(
+        repo,
+        params.output_path ?? "research/paper/main.tex",
+        params.bibliography_path ?? "research/refs/references.bib",
+      );
+      return { content: [{ type: "text", text: JSON.stringify(result) }] };
     },
   });
 }

@@ -16,6 +16,7 @@ const state_js_1 = require("./src/state.js");
 const vectordb_js_1 = require("./src/vectordb.js");
 const bibtex_js_1 = require("./src/bibtex.js");
 const research_state_js_1 = require("./src/research_state.js");
+const paper_writer_js_1 = require("./src/paper_writer.js");
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -1035,6 +1036,170 @@ server.tool("research_iterate", "Increment the forest iteration counter. Returns
         (0, research_state_js_1.markForestDone)(params.forest_id);
     }
     return ok({ iteration: count, max_iterations: maxIter, continue: shouldContinue, status: forest?.status });
+});
+// ===========================================================================
+// D/E-layer: Paper writing tools
+// ===========================================================================
+server.tool("write_intro", "Generate an introduction section LaTeX draft from a derivation forest.", {
+    forest_id: zod_1.z.string().describe("Research forest ID."),
+    section_title: zod_1.z.string().optional().describe("LaTeX section title. Defaults to 'Introduction'."),
+    output_path: zod_1.z.string().optional().describe("Optional output path. Defaults to research/paper/sections/introduction.tex when repo state is available."),
+}, async (params) => {
+    const forest = (0, research_state_js_1.getForest)(params.forest_id);
+    if (!forest)
+        return ok({ error: `Forest '${params.forest_id}' not found.` });
+    const draft = (0, paper_writer_js_1.generateIntroductionSection)(forest, params.section_title ?? "Introduction");
+    let writtenTo = null;
+    try {
+        const repo = (0, state_js_1.getState)().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/introduction.tex";
+        writtenTo = (0, paper_writer_js_1.writeGeneratedArtifact)(repo, outputPath, draft.latex);
+    }
+    catch {
+        if (params.output_path) {
+            return ok({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary });
+        }
+    }
+    return ok({ forest_id: params.forest_id, latex: draft.latex, summary: draft.summary, output_path: writtenTo });
+});
+server.tool("write_related", "Generate a related-work section LaTeX draft from a derivation forest.", {
+    forest_id: zod_1.z.string().describe("Research forest ID."),
+    section_title: zod_1.z.string().optional().describe("LaTeX section title. Defaults to 'Related Work'."),
+    output_path: zod_1.z.string().optional().describe("Optional output path. Defaults to research/paper/sections/related_work.tex when repo state is available."),
+}, async (params) => {
+    const forest = (0, research_state_js_1.getForest)(params.forest_id);
+    if (!forest)
+        return ok({ error: `Forest '${params.forest_id}' not found.` });
+    const draft = (0, paper_writer_js_1.generateRelatedWorkSection)(forest, params.section_title ?? "Related Work");
+    let writtenTo = null;
+    try {
+        const repo = (0, state_js_1.getState)().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/related_work.tex";
+        writtenTo = (0, paper_writer_js_1.writeGeneratedArtifact)(repo, outputPath, draft.latex);
+    }
+    catch {
+        if (params.output_path) {
+            return ok({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary });
+        }
+    }
+    return ok({ forest_id: params.forest_id, latex: draft.latex, summary: draft.summary, output_path: writtenTo });
+});
+server.tool("write_experiment", "Generate an experiments section LaTeX draft from a derivation forest.", {
+    forest_id: zod_1.z.string().describe("Research forest ID."),
+    section_title: zod_1.z.string().optional().describe("LaTeX section title. Defaults to 'Experiments'."),
+    output_path: zod_1.z.string().optional().describe("Optional output path. Defaults to research/paper/sections/experiments.tex when repo state is available."),
+}, async (params) => {
+    const forest = (0, research_state_js_1.getForest)(params.forest_id);
+    if (!forest)
+        return ok({ error: `Forest '${params.forest_id}' not found.` });
+    const draft = (0, paper_writer_js_1.generateExperimentsSection)(forest, params.section_title ?? "Experiments");
+    let writtenTo = null;
+    try {
+        const repo = (0, state_js_1.getState)().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/experiments.tex";
+        writtenTo = (0, paper_writer_js_1.writeGeneratedArtifact)(repo, outputPath, draft.latex);
+    }
+    catch {
+        if (params.output_path) {
+            return ok({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary });
+        }
+    }
+    return ok({ forest_id: params.forest_id, latex: draft.latex, summary: draft.summary, output_path: writtenTo });
+});
+server.tool("write_method", "Generate a method section LaTeX draft from a derivation forest.", {
+    forest_id: zod_1.z.string().describe("Research forest ID."),
+    section_title: zod_1.z.string().optional().describe("LaTeX section title. Defaults to 'Method'."),
+    output_path: zod_1.z.string().optional().describe("Optional output path. Defaults to research/paper/sections/method.tex when repo state is available."),
+}, async (params) => {
+    const forest = (0, research_state_js_1.getForest)(params.forest_id);
+    if (!forest)
+        return ok({ error: `Forest '${params.forest_id}' not found.` });
+    const draft = (0, paper_writer_js_1.generateMethodSection)(forest, params.section_title ?? "Method");
+    let writtenTo = null;
+    try {
+        const repo = (0, state_js_1.getState)().config.repo_path;
+        const outputPath = params.output_path ?? "research/paper/sections/method.tex";
+        writtenTo = (0, paper_writer_js_1.writeGeneratedArtifact)(repo, outputPath, draft.latex);
+    }
+    catch {
+        if (params.output_path) {
+            return ok({ error: "Cannot resolve output path because no active evolution repo is available.", latex: draft.latex, summary: draft.summary });
+        }
+    }
+    return ok({
+        forest_id: params.forest_id,
+        latex: draft.latex,
+        summary: draft.summary,
+        output_path: writtenTo,
+    });
+});
+server.tool("paper_assemble", "Assemble a multi-file LaTeX paper draft, optionally generating sections from a derivation forest.", {
+    title: zod_1.z.string().describe("Paper title."),
+    forest_id: zod_1.z.string().optional().describe("Forest ID used to auto-generate the method and section placeholders."),
+    author: zod_1.z.string().optional().describe("Author line for the LaTeX draft."),
+    abstract_latex: zod_1.z.string().optional().describe("Abstract body text. Auto-generated if omitted and forest_id is given."),
+    intro_latex: zod_1.z.string().optional().describe("Full LaTeX for the introduction section."),
+    related_latex: zod_1.z.string().optional().describe("Full LaTeX for the related-work section."),
+    method_latex: zod_1.z.string().optional().describe("Full LaTeX for the method section."),
+    experiments_latex: zod_1.z.string().optional().describe("Full LaTeX for the experiments section."),
+    conclusion_latex: zod_1.z.string().optional().describe("Full LaTeX for the conclusion section."),
+    bibliography_path: zod_1.z.string().optional().describe("Path to the .bib file. Defaults to research/refs/references.bib."),
+    sections_dir: zod_1.z.string().optional().describe("Directory for section .tex files. Defaults to research/paper/sections."),
+    output_path: zod_1.z.string().optional().describe("Optional output path. Defaults to research/paper/main.tex when repo state is available."),
+}, async (params) => {
+    const forest = params.forest_id ? (0, research_state_js_1.getForest)(params.forest_id) : null;
+    if (params.forest_id && !forest) {
+        return ok({ error: `Forest '${params.forest_id}' not found.` });
+    }
+    if (!forest && !params.method_latex) {
+        return ok({ error: "Either forest_id or method_latex is required to assemble a paper draft." });
+    }
+    const outputPath = params.output_path ?? "research/paper/main.tex";
+    const bundle = (0, paper_writer_js_1.generatePaperBundle)(forest, {
+        title: params.title,
+        author: params.author,
+        abstract_latex: params.abstract_latex,
+        intro_latex: params.intro_latex,
+        related_latex: params.related_latex,
+        method_latex: params.method_latex,
+        experiments_latex: params.experiments_latex,
+        conclusion_latex: params.conclusion_latex,
+        bibliography_path: params.bibliography_path,
+        sections_dir: params.sections_dir,
+        output_path: outputPath,
+    });
+    let writtenFiles = null;
+    try {
+        const repo = (0, state_js_1.getState)().config.repo_path;
+        writtenFiles = (0, paper_writer_js_1.writeGeneratedArtifacts)(repo, bundle.files);
+    }
+    catch {
+        if (params.output_path) {
+            return ok({ error: "Cannot resolve output path because no active evolution repo is available.", latex: bundle.main_latex, summary: bundle.main_summary, files: bundle.files });
+        }
+    }
+    return ok({
+        title: params.title,
+        forest_id: params.forest_id ?? null,
+        latex: bundle.main_latex,
+        files: bundle.files,
+        summary: bundle.main_summary,
+        written_files: writtenFiles,
+    });
+});
+server.tool("paper_validate", "Validate generated paper artifacts for missing files, placeholders, and bibliography presence.", {
+    output_path: zod_1.z.string().optional().describe("Main LaTeX file path. Defaults to research/paper/main.tex."),
+    bibliography_path: zod_1.z.string().optional().describe("Bibliography path. Defaults to research/refs/references.bib."),
+}, async (params) => {
+    let repo;
+    try {
+        repo = (0, state_js_1.getState)().config.repo_path;
+    }
+    catch {
+        return ok({ error: "No active evolution repo is available for validation." });
+    }
+    const result = (0, paper_writer_js_1.validatePaperArtifacts)(repo, params.output_path ?? "research/paper/main.tex", params.bibliography_path ?? "research/refs/references.bib");
+    return ok(result);
 });
 // ---------------------------------------------------------------------------
 // Start
