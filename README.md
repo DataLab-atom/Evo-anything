@@ -293,6 +293,8 @@ Or configure via `openclaw.json`:
 
 ## Quick Start
 
+Replace `https://github.com/example/long-tail-repo` with your own repository URL. For concrete runnable examples, see the `examples/` folder in this repo.
+
 ```
 You say: optimize this repo https://github.com/example/long-tail-repo
       benchmark command is python benchmark.py --dataset cifar100_lt

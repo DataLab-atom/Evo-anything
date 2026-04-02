@@ -292,6 +292,8 @@ export U2E_STATE_DIR=/path/to/your/state
 
 ## Quick Start
 
+请将 `https://github.com/example/long-tail-repo` 替换为你自己的仓库地址。可运行的完整示例请参考本仓库的 `examples/` 文件夹。
+
 ```
 你说：优化这个仓库 https://github.com/example/long-tail-repo
       benchmark 命令是 python benchmark.py --dataset cifar100_lt
