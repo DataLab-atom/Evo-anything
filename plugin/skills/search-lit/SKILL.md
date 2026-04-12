@@ -1,3 +1,8 @@
+---
+name: search-lit
+description: "Search online academic literature (arXiv, Papers With Code, Google Scholar) and return structured results with BibTeX citations."
+---
+
 # /search-lit — Online Literature Search
 
 > **Internal skill** — called by `/ask-lit` and ResearchAgent, not typically invoked directly.

@@ -215,6 +215,8 @@ export interface Contribution {
 
 export interface DerivationForest {
   id: string;
+  /** Path to the git repo — used for git-backed forest persistence */
+  repo_path: string;
   evo_session_summary: string;
   nodes: Record<string, DerivationNode>;
   convergence_points: ConvergencePoint[];

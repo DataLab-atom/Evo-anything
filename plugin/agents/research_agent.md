@@ -124,4 +124,20 @@ When the loop completes, produce:
 4. Full literature reference list
 5. All experimental evidence
 
-Store everything in `research/forest/<forest_id>/` and commit to git.
+Store everything in `research/forest/<forest_id>/` and commit to git via `research_iterate`.
+
+## Next Step: Paper Writing
+
+After the forest is complete (status = "done"), invoke the D-layer skills to generate the paper:
+
+```
+/write-intro <forest_id>          # Introduction
+/write-related <forest_id>        # Related Work
+/write-method <forest_id>         # Method
+/write-experiment <forest_id>     # Experiments
+/paper-assemble --forest <forest_id>  # Assemble full paper
+```
+
+Each `/write-*` skill reads the forest, synthesizes the corresponding chapter, and writes it to `research/paper/sections/<name>.tex`.
+
+Then `/paper-assemble` merges all chapters with the template and performs consistency checks.

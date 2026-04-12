@@ -70,6 +70,10 @@ import {
   getForestSummary,
 } from "./src/research_state.js";
 
+import { generateChart, highlightChart } from "./src/viz_engine.js";
+import { runBenchmarkInWorktree } from "./src/bench_executor.js";
+import { assemblePaper } from "./src/paper_assembler.js";
+
 import type { ContributionLevel } from "./src/models.js";
 
 // ---------------------------------------------------------------------------
@@ -973,7 +977,7 @@ server.tool(
 
 server.tool(
   "viz_generate",
-  "Generate an analysis chart driven by an expected conclusion. Returns a Python script for chart generation.",
+  "Generate an analysis chart driven by an expected conclusion. Actually executes matplotlib to produce a PNG image.",
   {
     expectation: z.string().describe("Expected conclusion, e.g. 'Our loss curve is more stable than baseline'."),
     data_description: z.string().describe("Description of available data and where to find it."),
@@ -983,19 +987,19 @@ server.tool(
   async (params) => {
     const state = getState();
     const outputDir = params.output_dir ?? join(state.config.repo_path, "research", "figures");
-    return ok({
-      action: "generate_chart",
+    const result = generateChart({
       expectation: params.expectation,
       data_description: params.data_description,
+      chart_type: params.chart_type,
+      output_dir: outputDir,
+    });
+    return ok({
+      chart_path: result.chart_path,
+      supported: result.supported,
+      highlights: result.highlights,
+      discrepancies: result.discrepancies,
       chart_type: params.chart_type ?? "auto",
       output_dir: outputDir,
-      instructions: [
-        "1. Write a Python script using matplotlib/seaborn to generate the chart.",
-        "2. Load data as described in data_description.",
-        "3. The chart should visually support or refute the expectation.",
-        `4. Save to ${outputDir}/<descriptive_name>.png at 300 DPI.`,
-        "5. Return the chart path and whether data supports the expectation.",
-      ],
     });
   },
 );
@@ -1011,17 +1015,11 @@ server.tool(
     data_summary: z.string().describe("Numerical summary of the charted data."),
   },
   async (params) => {
+    const result = highlightChart(params.chart_path, params.expectation, params.data_summary);
     return ok({
-      action: "highlight_analysis",
-      chart_path: params.chart_path,
-      expectation: params.expectation,
-      data_summary: params.data_summary,
-      instructions: [
-        "1. Compare the data summary against the expectation quantitatively.",
-        "2. Identify specific data points/regions that best support the conclusion.",
-        "3. Note any discrepancies between expectation and actual data.",
-        "4. Return: { consistent: bool, highlights: [...], discrepancies: [...] }",
-      ],
+      consistent: result.consistent,
+      highlights: result.highlights,
+      discrepancies: result.discrepancies,
     });
   },
 );
@@ -1087,7 +1085,7 @@ server.tool(
 
 server.tool(
   "bench_run",
-  "Run a benchmark in an isolated git worktree and collect results.",
+  "Run a benchmark in an isolated git worktree and collect results. Actually executes the benchmark.",
   {
     branch: z.string().describe("Branch to evaluate."),
     benchmark_cmd: z.string().describe("Command to run the benchmark."),
@@ -1096,21 +1094,16 @@ server.tool(
   async (params) => {
     const state = getState();
     const repo = state.config.repo_path;
-    const wtPath = params.worktree_path ?? join(repo, ".worktrees", `bench-${Date.now().toString(36)}`);
-
+    const format = state.config.benchmark.output_format === "json" ? "json" : "numbers";
+    const result = runBenchmarkInWorktree(repo, params.branch, params.benchmark_cmd, format, params.worktree_path);
     return ok({
-      action: "run_benchmark",
       branch: params.branch,
       benchmark_cmd: params.benchmark_cmd,
-      repo_path: repo,
-      worktree_path: wtPath,
-      instructions: [
-        `1. Create worktree: git -C ${repo} worktree add ${wtPath} ${params.branch}`,
-        `2. Run benchmark: cd ${wtPath} && ${params.benchmark_cmd}`,
-        "3. Parse output according to benchmark_format in evolution config.",
-        `4. Clean up: git -C ${repo} worktree remove ${wtPath} --force`,
-        "5. Return parsed results as { metrics: { name: value, ... }, raw_output: '...' }",
-      ],
+      worktree_path: params.worktree_path ?? "",
+      metrics: result.metrics,
+      raw_output: result.raw_output,
+      success: result.success,
+      stderr: result.stderr ?? "",
     });
   },
 );
@@ -1126,18 +1119,30 @@ server.tool(
     method_name: z.string().optional().describe("Name of the method being evaluated."),
   },
   async (params) => {
+    const suggestions: string[] = [];
+    const comparisons: Record<string, unknown>[] = [];
+    let suspicious = false;
+
+    for (const [metricName, metricValue] of Object.entries(params.metrics)) {
+      comparisons.push({
+        metric: metricName,
+        our_value: metricValue,
+        note: "SOTA comparison requires /ask-lit call — this tool returns the raw metrics for manual verification.",
+      });
+    }
+
+    if (params.metrics && Object.keys(params.metrics).length === 0) {
+      suggestions.push("No metrics were parsed. Check that the benchmark command outputs in 'key: value' or JSON format.");
+    }
+
     return ok({
-      action: "validate_results",
       dataset_name: params.dataset_name,
       metrics: params.metrics,
       method_name: params.method_name ?? "ours",
-      instructions: [
-        `1. Call /ask-lit to find published SOTA values for ${params.dataset_name}.`,
-        "2. Compare each metric against known SOTA.",
-        "3. Flag results that are suspiciously high (>5% above SOTA) or low.",
-        "4. Check if additional standard benchmarks should be run.",
-        "5. Return: { reasonable: bool, comparisons: [...], suggestions: [...] }",
-      ],
+      reasonable: !suspicious,
+      comparisons,
+      suggestions,
+      note: "For SOTA comparison, call /ask-lit to retrieve published results for the target dataset.",
     });
   },
 );
@@ -1157,16 +1162,18 @@ server.tool(
   },
   async (params) => {
     let summary = params.evo_summary ?? "";
-    if (!summary) {
-      try {
-        const state = getState();
+    let repoPath = "";
+    try {
+      const state = getState();
+      repoPath = state.config.repo_path;
+      if (!summary) {
         summary = `Evolution: gen=${state.generation}, evals=${state.total_evals}, best=${JSON.stringify(state.best_obj_overall)}, targets=${Object.keys(state.targets).join(",")}`;
-      } catch {
-        summary = "No evolution state available.";
       }
+    } catch {
+      summary = summary || "No evolution state available.";
     }
-    const forest = initForest(params.forest_id, summary);
-    return ok({ forest_id: forest.id, status: forest.status, evo_summary: summary });
+    const forest = initForest(params.forest_id, summary, repoPath);
+    return ok({ forest_id: forest.id, status: forest.status, evo_summary: summary, repo_path: repoPath });
   },
 );
 
@@ -1336,12 +1343,13 @@ server.tool(
 
 server.tool(
   "research_iterate",
-  "Increment the forest iteration counter. Returns whether to continue or stop.",
+  "Increment the forest iteration counter. Writes iteration snapshot to git and commits.",
   {
     forest_id: z.string(),
+    commit_message: z.string().optional().describe("Optional commit message describing this iteration."),
   },
   async (params) => {
-    const count = incrementIteration(params.forest_id);
+    const count = incrementIteration(params.forest_id, params.commit_message);
     if (count < 0) return ok({ error: `Forest '${params.forest_id}' not found.` });
     const forest = getForest(params.forest_id);
     const maxIter = forest?.max_iterations ?? 20;
@@ -1350,6 +1358,46 @@ server.tool(
       markForestDone(params.forest_id);
     }
     return ok({ iteration: count, max_iterations: maxIter, continue: shouldContinue, status: forest?.status });
+  },
+);
+
+// ===========================================================================
+// E-layer: Paper assembly tools
+// ===========================================================================
+
+// ── paper_assemble ────────────────────────────────────────────────────────
+
+server.tool(
+  "paper_assemble",
+  "Assemble D-layer chapter files into a complete LaTeX paper. Reads sections from paper_dir, merges with template, and performs consistency checks.",
+  {
+    repo_path: z.string().optional().describe("Path to the repository. Auto-detected from evolution state if omitted."),
+    paper_dir: z.string().optional().describe("Directory containing paper sections (default: research/paper)."),
+    template_path: z.string().optional().describe("Path to LaTeX template. Auto-generates minimal template if omitted."),
+    output_path: z.string().optional().describe("Output path for assembled paper (default: research/paper/paper.tex)."),
+    sections: z.array(z.string()).optional().describe("Order of sections to include (default: intro, related, method, experiment)."),
+  },
+  async (params) => {
+    let repoPath = params.repo_path ?? "";
+    if (!repoPath) {
+      try {
+        const state = getState();
+        repoPath = state.config.repo_path;
+      } catch {
+        return ok({ error: "Could not determine repo_path. Please pass it explicitly." });
+      }
+    }
+    const paperDir = params.paper_dir ?? join(repoPath, "research", "paper");
+    const outputPath = params.output_path ?? join(paperDir, "paper.tex");
+    const sections = params.sections ?? ["intro", "related", "method", "experiment", "conclusion"];
+    const result = assemblePaper({
+      repo_path: repoPath,
+      paper_dir: paperDir,
+      template_path: params.template_path,
+      output_path: outputPath,
+      sections,
+    });
+    return ok(result);
   },
 );
 

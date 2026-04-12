@@ -1,3 +1,8 @@
+---
+name: research-loop
+description: "Iteratively build a derivation forest from evolution results to discover deep motivations and grade contributions for paper writing. Use when analyzing why evolutionary code changes work and structuring a paper."
+---
+
 # /research-loop — Research Derivation Loop
 
 > **C4: Core research verification loop** — drives the derivation forest from
@@ -47,16 +52,20 @@ Each iteration performs 5 steps:
 - Call `research_add_node(type="evidence", literature_refs=[...])` for each finding
 - Update hypothesis nodes with literature context
 
-**Step 4 — Experimental verification**
+**Step 4 — Experimental verification & visualization**
 - Design targeted experiments (ablation / control) to test hypotheses
 - Call `bench_adapt` + `bench_run` to execute experiments
 - Call `bench_validate` to check result reasonableness
+- Call `viz_generate` to generate ablation curves, score distributions, and contribution
+  heatmaps for each confirmed hypothesis. Save outputs to `research/figures/`.
+- Call `viz_polish` to polish the figures for publication quality.
+- Record figure paths in evidence nodes so write-experiment can reference them later.
 - Supported: `research_update_node(status="pruned")` for rejected hypotheses
 - Supported: continue deepening for confirmed hypotheses
 
 **Step 5 — Check convergence**
 - Call `research_check_convergence`
-- If **not converged**: increment iteration, go back to Step 1
+- If **not converged**: call `research_iterate(forest_id, commit_message="<brief notes>")` to persist this iteration to git, then go back to Step 1
 - If **converged**: enter Phase 3
 
 ### Phase 3: Convergence & Contribution Grading
@@ -74,8 +83,35 @@ Each iteration performs 5 steps:
    - Converged branches → `research_record_contribution(level="primary")`
    - Non-converged active branches → `research_record_contribution(level="auxiliary")`
 
-4. Call `research_get_forest` for final summary
-5. Commit forest to git: `research/forest/<forest_id>/`
+4. Call `research_iterate(forest_id, commit_message="convergence reached — contributions graded")` for final git commit
+5. Call `research_get_forest` for final summary
+
+### Phase 4: Handoff to D-layer
+
+After Phase 3 completes (forest status = "done"), invoke the paper writing pipeline
+in the correct order. Each skill reads from the forest and writes its chapter to
+`research/paper/sections/<name>.tex`.
+
+Call in this exact order:
+
+1. `/write-method <forest_id>` — Method section (requires verified convergence points)
+2. `/write-experiment <forest_id>` — Experiments section (requires viz_generate figures)
+3. `/write-intro <forest_id>` — Introduction (requires contributions from Phase 3)
+4. `/write-related <forest_id>` — Related Work (requires evidence nodes with literature refs)
+5. `/paper-assemble --forest <forest_id>` — Assemble all sections into paper.tex
+
+> **Prerequisite note:** Before calling `/write-experiment`, ensure `viz_generate`
+> has been called at least once during Phase 2 Step 4 to populate `research/figures/`.
+> If `research/figures/` is empty when you reach `/write-experiment`, generate the
+> figures before writing the chapter.
+
+### Git Persistence
+
+Each iteration is automatically committed to git via `research_iterate`. Commits land in:
+- `research/forest/<forest_id>/iterations/iter_<N>.md` — per-iteration snapshot
+- `research/forest/<forest_id>/forest.json` — full forest state
+
+You can trace the full derivation history with `git log -- research/forest/<forest_id>/`.
 
 ### Safety
 

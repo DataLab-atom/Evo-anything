@@ -22,30 +22,52 @@ export interface BibEntry {
 
 /**
  * Parse a BibTeX string into structured entries.
- * Handles standard @type{key, field = {value}, ...} format.
+ * Uses depth-counting state machine — handles multi-line entries,
+ * nested braces in field values, and any brace depth correctly.
  */
 export function parseBib(bibtex: string): BibEntry[] {
   const entries: BibEntry[] = [];
-  // Match @type{key, ... }
-  const entryRegex = /@(\w+)\s*\{([^,]+),([^}@]*(?:\{[^}]*\}[^}@]*)*)}/g;
-  let match: RegExpExecArray | null;
+  let i = 0;
 
-  while ((match = entryRegex.exec(bibtex)) !== null) {
-    const type = match[1].toLowerCase();
-    const key = match[2].trim();
-    const body = match[3];
+  while (i < bibtex.length) {
+    // Find next @
+    const atIdx = bibtex.indexOf("@", i);
+    if (atIdx === -1) break;
 
-    const fields: Record<string, string> = {};
-    // Match field = {value} or field = "value" or field = number
-    const fieldRegex = /(\w+)\s*=\s*(?:\{([^}]*(?:\{[^}]*\}[^}]*)*)\}|"([^"]*)"|(\d+))/g;
-    let fieldMatch: RegExpExecArray | null;
-    while ((fieldMatch = fieldRegex.exec(body)) !== null) {
-      const fieldName = fieldMatch[1].toLowerCase();
-      const fieldValue = fieldMatch[2] ?? fieldMatch[3] ?? fieldMatch[4] ?? "";
-      fields[fieldName] = fieldValue.trim();
+    let pos = atIdx + 1;
+    // Read entry type
+    const typeMatch = bibtex.slice(pos).match(/^(\w+)\s*\{/);
+    if (!typeMatch) { i = atIdx + 1; continue; }
+    const type = typeMatch[1].toLowerCase();
+    pos = atIdx + 1 + typeMatch[0].length;
+
+    // Read key: accumulate until first comma
+    let key = "";
+    while (pos < bibtex.length && bibtex[pos] !== ",") key += bibtex[pos++];
+    pos++; // skip ','
+
+    // Read body using depth counting
+    let body = "";
+    let depth = 1;
+    while (pos < bibtex.length && depth > 0) {
+      const ch = bibtex[pos];
+      if (ch === "{") { depth++; body += ch; }
+      else if (ch === "}") { depth--; if (depth > 0) body += ch; }
+      else { body += ch; }
+      pos++;
     }
 
-    entries.push({ key, type, fields });
+    // Parse fields from body
+    const fields: Record<string, string> = {};
+    const fieldRegex = /(\w+)\s*=\s*(?:\{([^}]*(?:\{[^}]*\}[^}]*)*)\}|"([^"]*)"|(\d+))/g;
+    let fieldMatch;
+    while ((fieldMatch = fieldRegex.exec(body)) !== null) {
+      fields[fieldMatch[1].toLowerCase()] =
+        (fieldMatch[2] ?? fieldMatch[3] ?? fieldMatch[4] ?? "").trim();
+    }
+
+    if (key) entries.push({ key: key.trim(), type, fields });
+    i = pos;
   }
   return entries;
 }

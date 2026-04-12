@@ -1,3 +1,8 @@
+---
+name: ask-lit
+description: "Answer research questions using a local vector DB and online literature search, with auto-ingest for new papers. Use when you need to find relevant academic work or verify if an idea is novel."
+---
+
 # /ask-lit — Literature Question Answering
 
 > **A4: Unified literature interface** — local-first, online-supplement, auto-ingest.

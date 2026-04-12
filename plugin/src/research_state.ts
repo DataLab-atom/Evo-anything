@@ -7,6 +7,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { execFileSync } from "node:child_process";
 import type {
   DerivationNode,
   DerivationForest,
@@ -55,9 +56,10 @@ function newId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${(_counter++).toString(36)}`;
 }
 
-export function initForest(forestId: string, evoSessionSummary: string): DerivationForest {
+export function initForest(forestId: string, evoSessionSummary: string, repoPath?: string): DerivationForest {
   const forest: DerivationForest = {
     id: forestId,
+    repo_path: repoPath ?? "",
     evo_session_summary: evoSessionSummary,
     nodes: {},
     convergence_points: [],
@@ -396,13 +398,89 @@ export function recordContribution(
 // Iteration tracking
 // ---------------------------------------------------------------------------
 
-export function incrementIteration(forestId: string): number {
+function gitExec(repoPath: string, args: string[]): string {
+  try {
+    return execFileSync("git", ["-C", repoPath, ...args], {
+      encoding: "utf-8",
+      maxBuffer: 10 * 1024 * 1024,
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
+export function incrementIteration(forestId: string, commitMessage?: string): number {
   const forest = loadForest(forestId);
   if (!forest) return -1;
 
   forest.iteration_count++;
   forest.updated_at = Date.now();
   saveForest(forestId);
+
+  // Git-backed persistence: write iteration summary + commit
+  if (forest.repo_path) {
+    const iterDir = join(forest.repo_path, "research", "forest", forestId, "iterations");
+    mkdirSync(iterDir, { recursive: true });
+
+    // Write iteration snapshot
+    const iterFile = join(iterDir, `iter_${forest.iteration_count}.md`);
+    const summary = getForestSummary(forestId);
+    const lines = [
+      `# Iteration ${forest.iteration_count}`,
+      `> ${new Date().toISOString()}`,
+      ``,
+      `## Forest Summary`,
+      ``,
+      `| Field | Value |`,
+      `|-------|-------|`,
+      `| Status | ${summary?.["status"]} |`,
+      `| Total Nodes | ${summary?.["total_nodes"]} |`,
+      `| Active | ${summary?.["active_nodes"]} |`,
+      `| Converged | ${summary?.["converged_nodes"]} |`,
+      `| Pruned | ${summary?.["pruned_nodes"]} |`,
+      `| Max Depth | ${summary?.["max_depth"]} |`,
+      `| Convergence Points | ${summary?.["convergence_points"]} |`,
+      `| Verified | ${summary?.["verified_points"]} |`,
+      `| Contributions | ${summary?.["contributions"]} |`,
+      ``,
+    ];
+
+    if (commitMessage) {
+      lines.push(`## Research Notes`);
+      lines.push(``);
+      lines.push(commitMessage);
+      lines.push(``);
+    }
+
+    lines.push(`## Active Nodes`);
+    lines.push(``);
+    const activeNodes = Object.values(forest.nodes).filter((n) => n.status === "active");
+    for (const node of activeNodes) {
+      lines.push(`### [${node.type}] ${node.id}`);
+      lines.push(``);
+      lines.push(node.content);
+      lines.push(``);
+      if (node.literature_refs.length > 0) lines.push(`References: ${node.literature_refs.join(", ")}`);
+      if (node.experiment_ids.length > 0) lines.push(`Experiments: ${node.experiment_ids.join(", ")}`);
+      lines.push(``);
+    }
+
+    writeFileSync(iterFile, lines.join("\n"));
+
+    // Write full forest JSON
+    const forestJsonPath = join(forest.repo_path, "research", "forest", forestId, "forest.json");
+    mkdirSync(dirname(forestJsonPath), { recursive: true });
+    writeFileSync(forestJsonPath, JSON.stringify(forest, null, 2));
+
+    // Git commit
+    const relIterDir = join("research", "forest", forestId);
+    gitExec(forest.repo_path, ["add", relIterDir]);
+    const msg = commitMessage
+      ? `research(${forestId}): iteration ${forest.iteration_count} — ${commitMessage}`
+      : `research(${forestId}): iteration ${forest.iteration_count}`;
+    gitExec(forest.repo_path, ["commit", "-m", msg]);
+  }
+
   return forest.iteration_count;
 }
 

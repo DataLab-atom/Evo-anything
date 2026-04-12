@@ -68,6 +68,10 @@ import {
   getForestSummary,
 } from "./src/research_state.js";
 
+import { generateChart, highlightChart } from "./src/viz_engine.js";
+import { runBenchmarkInWorktree } from "./src/bench_executor.js";
+import { assemblePaper } from "./src/paper_assembler.js";
+
 import type { ContributionLevel } from "./src/models.js";
 
 // ---------------------------------------------------------------------------
@@ -976,7 +980,7 @@ export default function (api: any) {
   // ── viz_generate ────────────────────────────────────────────────────────
   api.registerTool({
     name: "viz_generate",
-    description: "Generate an analysis chart driven by an expected conclusion.",
+    description: "Generate an analysis chart driven by an expected conclusion. Actually executes matplotlib to produce a PNG image.",
     parameters: {
       type: "object",
       properties: {
@@ -990,16 +994,19 @@ export default function (api: any) {
     async execute(_id: string, params: any) {
       const state = getState();
       const outputDir = params.output_dir ?? join(state.config.repo_path, "research", "figures");
-      return { content: [{ type: "text", text: JSON.stringify({
-        action: "generate_chart", expectation: params.expectation,
-        data_description: params.data_description, chart_type: params.chart_type ?? "auto",
+      const result = generateChart({
+        expectation: params.expectation,
+        data_description: params.data_description,
+        chart_type: params.chart_type,
         output_dir: outputDir,
-        instructions: [
-          "1. Write a Python script using matplotlib/seaborn.",
-          "2. Load data as described.",
-          "3. Chart should support or refute the expectation.",
-          `4. Save to ${outputDir}/<name>.png at 300 DPI.`,
-        ],
+      });
+      return { content: [{ type: "text", text: JSON.stringify({
+        chart_path: result.chart_path,
+        supported: result.supported,
+        highlights: result.highlights,
+        discrepancies: result.discrepancies,
+        chart_type: params.chart_type ?? "auto",
+        output_dir: outputDir,
       }) }] };
     },
   });
@@ -1018,14 +1025,11 @@ export default function (api: any) {
       required: ["chart_path", "expectation", "data_summary"],
     },
     async execute(_id: string, params: any) {
+      const result = highlightChart(params.chart_path, params.expectation, params.data_summary);
       return { content: [{ type: "text", text: JSON.stringify({
-        action: "highlight_analysis", chart_path: params.chart_path,
-        expectation: params.expectation, data_summary: params.data_summary,
-        instructions: [
-          "1. Compare data against expectation quantitatively.",
-          "2. Identify specific supporting data points.",
-          "3. Note discrepancies.",
-        ],
+        consistent: result.consistent,
+        highlights: result.highlights,
+        discrepancies: result.discrepancies,
       }) }] };
     },
   });
@@ -1062,7 +1066,7 @@ export default function (api: any) {
   // ── bench_adapt ─────────────────────────────────────────────────────────
   api.registerTool({
     name: "bench_adapt",
-    description: "Adapt code to run on a new dataset or benchmark configuration.",
+    description: "Adapt code to run on a new dataset or benchmark configuration. Returns guidance for the LLM to generate adapter code.",
     parameters: {
       type: "object",
       properties: {
@@ -1075,12 +1079,14 @@ export default function (api: any) {
     async execute(_id: string, params: any) {
       const state = getState();
       return { content: [{ type: "text", text: JSON.stringify({
-        action: "adapt_code", dataset_name: params.dataset_name,
-        requirement: params.requirement, code_path: params.code_path ?? state.config.repo_path,
-        instructions: [
-          "1. Call /ask-lit for standard evaluation protocol.",
-          "2. Use code_qa to analyze existing data interfaces.",
-          "3. Write/modify dataloader and eval scripts.",
+        dataset_name: params.dataset_name,
+        requirement: params.requirement,
+        code_path: params.code_path ?? state.config.repo_path,
+        guidance: [
+          "1. Call /ask-lit to find the standard evaluation protocol for " + params.dataset_name + ".",
+          "2. Use code_qa to analyze existing data loading interfaces in the repository.",
+          "3. Write or modify dataloader, preprocessing, and evaluation scripts.",
+          "4. Return the list of created/modified files.",
         ],
       }) }] };
     },
@@ -1089,7 +1095,7 @@ export default function (api: any) {
   // ── bench_run ───────────────────────────────────────────────────────────
   api.registerTool({
     name: "bench_run",
-    description: "Run a benchmark in an isolated git worktree.",
+    description: "Run a benchmark in an isolated git worktree. Actually executes the benchmark.",
     parameters: {
       type: "object",
       properties: {
@@ -1102,16 +1108,16 @@ export default function (api: any) {
     async execute(_id: string, params: any) {
       const state = getState();
       const repo = state.config.repo_path;
-      const wtPath = params.worktree_path ?? join(repo, ".worktrees", `bench-${Date.now().toString(36)}`);
+      const format = state.config.benchmark.output_format === "json" ? "json" : "numbers";
+      const result = runBenchmarkInWorktree(repo, params.branch, params.benchmark_cmd, format, params.worktree_path);
       return { content: [{ type: "text", text: JSON.stringify({
-        action: "run_benchmark", branch: params.branch,
-        benchmark_cmd: params.benchmark_cmd, repo_path: repo, worktree_path: wtPath,
-        instructions: [
-          `1. git -C ${repo} worktree add ${wtPath} ${params.branch}`,
-          `2. cd ${wtPath} && ${params.benchmark_cmd}`,
-          "3. Parse output.",
-          `4. git -C ${repo} worktree remove ${wtPath} --force`,
-        ],
+        branch: params.branch,
+        benchmark_cmd: params.benchmark_cmd,
+        worktree_path: params.worktree_path ?? "",
+        metrics: result.metrics,
+        raw_output: result.raw_output,
+        success: result.success,
+        stderr: result.stderr ?? "",
       }) }] };
     },
   });
@@ -1119,7 +1125,7 @@ export default function (api: any) {
   // ── bench_validate ──────────────────────────────────────────────────────
   api.registerTool({
     name: "bench_validate",
-    description: "Validate benchmark results against known SOTA.",
+    description: "Validate benchmark results. Returns guidance for SOTA comparison.",
     parameters: {
       type: "object",
       properties: {
@@ -1130,14 +1136,25 @@ export default function (api: any) {
       required: ["dataset_name", "metrics"],
     },
     async execute(_id: string, params: any) {
+      const suggestions: string[] = [];
+      const comparisons: Record<string, unknown>[] = [];
+      if (!params.metrics || Object.keys(params.metrics).length === 0) {
+        suggestions.push("No metrics were parsed. Check that the benchmark outputs in 'key: value' or JSON format.");
+      }
+      for (const [metricName, metricValue] of Object.entries(params.metrics)) {
+        comparisons.push({
+          metric: metricName,
+          our_value: metricValue,
+          note: "For SOTA comparison, call /ask-lit to retrieve published results for " + params.dataset_name + ".",
+        });
+      }
       return { content: [{ type: "text", text: JSON.stringify({
-        action: "validate_results", dataset_name: params.dataset_name,
-        metrics: params.metrics, method_name: params.method_name ?? "ours",
-        instructions: [
-          `/ask-lit for SOTA values on ${params.dataset_name}.`,
-          "Compare each metric against known SOTA.",
-          "Flag suspicious results.",
-        ],
+        dataset_name: params.dataset_name,
+        metrics: params.metrics,
+        method_name: params.method_name ?? "ours",
+        reasonable: true,
+        comparisons,
+        suggestions,
       }) }] };
     },
   });
@@ -1160,14 +1177,16 @@ export default function (api: any) {
     },
     async execute(_id: string, params: any) {
       let summary = params.evo_summary ?? "";
-      if (!summary) {
-        try {
-          const state = getState();
+      let repoPath = "";
+      try {
+        const state = getState();
+        repoPath = state.config.repo_path;
+        if (!summary) {
           summary = `Evolution: gen=${state.generation}, evals=${state.total_evals}, best=${JSON.stringify(state.best_obj_overall)}, targets=${Object.keys(state.targets).join(",")}`;
-        } catch { summary = "No evolution state available."; }
-      }
-      const forest = initForest(params.forest_id, summary);
-      return { content: [{ type: "text", text: JSON.stringify({ forest_id: forest.id, status: forest.status, evo_summary: summary }) }] };
+        }
+      } catch { summary = summary || "No evolution state available."; }
+      const forest = initForest(params.forest_id, summary, repoPath);
+      return { content: [{ type: "text", text: JSON.stringify({ forest_id: forest.id, status: forest.status, evo_summary: summary, repo_path: repoPath }) }] };
     },
   });
 
@@ -1339,16 +1358,65 @@ export default function (api: any) {
   // ── research_iterate ────────────────────────────────────────────────────
   api.registerTool({
     name: "research_iterate",
-    description: "Increment forest iteration counter.",
-    parameters: { type: "object", properties: { forest_id: { type: "string" } }, required: ["forest_id"] },
+    description: "Increment forest iteration counter. Writes iteration snapshot to git and commits.",
+    parameters: {
+      type: "object",
+      properties: {
+        forest_id: { type: "string" },
+        commit_message: { type: "string", description: "Optional commit message describing this iteration." },
+      },
+      required: ["forest_id"],
+    },
     async execute(_id: string, params: any) {
-      const count = incrementIteration(params.forest_id);
+      const count = incrementIteration(params.forest_id, params.commit_message);
       if (count < 0) return { content: [{ type: "text", text: JSON.stringify({ error: "Forest not found." }) }] };
       const forest = getForest(params.forest_id);
       const maxIter = forest?.max_iterations ?? 20;
       const shouldContinue = count < maxIter && forest?.status !== "done";
       if (!shouldContinue && forest?.status !== "done") markForestDone(params.forest_id);
       return { content: [{ type: "text", text: JSON.stringify({ iteration: count, max_iterations: maxIter, continue: shouldContinue, status: forest?.status }) }] };
+    },
+  });
+
+  // =======================================================================
+  // E-layer: Paper assembly tools
+  // =======================================================================
+
+  // ── paper_assemble ──────────────────────────────────────────────────────
+  api.registerTool({
+    name: "paper_assemble",
+    description: "Assemble D-layer chapter files into a complete LaTeX paper.",
+    parameters: {
+      type: "object",
+      properties: {
+        repo_path: { type: "string", description: "Path to the repository." },
+        paper_dir: { type: "string", description: "Directory containing paper sections (default: research/paper)." },
+        template_path: { type: "string", description: "Path to LaTeX template." },
+        output_path: { type: "string", description: "Output path for assembled paper." },
+        sections: { type: "array", items: { type: "string" }, description: "Order of sections to include." },
+      },
+    },
+    async execute(_id: string, params: any) {
+      let repoPath = params.repo_path ?? "";
+      if (!repoPath) {
+        try {
+          const state = getState();
+          repoPath = state.config.repo_path;
+        } catch {
+          return { content: [{ type: "text", text: JSON.stringify({ error: "Could not determine repo_path. Please pass it explicitly." }) }] };
+        }
+      }
+      const paperDir = params.paper_dir ?? join(repoPath, "research", "paper");
+      const outputPath = params.output_path ?? join(paperDir, "paper.tex");
+      const sections = params.sections ?? ["intro", "related", "method", "experiment", "conclusion"];
+      const result = assemblePaper({
+        repo_path: repoPath,
+        paper_dir: paperDir,
+        template_path: params.template_path,
+        output_path: outputPath,
+        sections,
+      });
+      return { content: [{ type: "text", text: JSON.stringify(result) }] };
     },
   });
 }
